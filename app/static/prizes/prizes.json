@@ -1,0 +1,21 @@
+{
+  "sneakers": [
+    {"id":"s1","title":"Sneakers Drop","image":"/static/prizes/sneakers_1.svg"},
+    {"id":"s2","title":"Sneakers Drop","image":"/static/prizes/sneakers_2.svg"},
+    {"id":"s3","title":"Sneakers Drop","image":"/static/prizes/sneakers_3.svg"}
+  ],
+  "bracelet": [
+    {"id":"b1","title":"Bracelet Drop","image":"/static/prizes/bracelet_1.svg"},
+    {"id":"b2","title":"Bracelet Drop","image":"/static/prizes/bracelet_2.svg"}
+  ],
+  "discount": [
+    {"id":"d10","title":"Скидка 10%","image":"/static/prizes/discount_10.svg"},
+    {"id":"d20","title":"Скидка 20%","image":"/static/prizes/discount_20.svg"},
+    {"id":"d50","title":"Скидка 50%","image":"/static/prizes/discount_50.svg"}
+  ],
+  "stars": [
+    {"id":"x150","title":"150 Stars","image":"/static/prizes/stars_150.svg"},
+    {"id":"x500","title":"500 Stars","image":"/static/prizes/stars_500.svg"},
+    {"id":"x1000","title":"1000 Stars","image":"/static/prizes/stars_1000.svg"}
+  ]
+}

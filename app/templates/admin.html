@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Admin — Stars Roulette</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html,body{ height:100%; font-family: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .grad{ background: linear-gradient(180deg, #0b1020, #070814); }
+    .card{ background: rgba(255,255,255,.08); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.12); }
+  </style>
+</head>
+<body class="grad text-white">
+  <div class="max-w-3xl mx-auto p-4 pb-20">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <div class="text-xs text-white/70">⚙️ Админка</div>
+        <div class="text-2xl font-extrabold">Stars Roulette</div>
+      </div>
+      <a href="/" class="rounded-2xl bg-white/10 border border-white/15 px-4 py-2 font-extrabold">← Назад</a>
+    </div>
+
+    <div class="mt-4 card rounded-3xl p-4">
+      <div class="font-extrabold">Доступ</div>
+      <div class="text-xs text-white/70 mt-1">
+        Откройте страницу из Telegram (WebApp), чтобы передался <code>initData</code>.
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button id="loadAll" class="rounded-2xl bg-white text-black px-4 py-3 font-extrabold w-full">Загрузить данные</button>
+      </div>
+      <div class="mt-2 text-[11px] text-white/60" id="msg">—</div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 gap-4">
+      <div class="card rounded-3xl p-4">
+        <div class="font-extrabold">Изменить баланс / билеты</div>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input id="uId" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="user_id" value="1001"/>
+          <input id="bal" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="balance_delta (например 500)" value="0"/>
+          <input id="ts" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="tickets_sneakers_delta" value="0"/>
+          <input id="tb" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="tickets_bracelet_delta" value="0"/>
+        </div>
+        <input id="note" class="mt-2 rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="note" value="ручная правка"/>
+        <button id="apply" class="mt-3 rounded-2xl bg-white/10 border border-white/15 px-4 py-3 font-extrabold w-full">Применить</button>
+      </div>
+
+      <div class="card rounded-3xl p-4">
+        <div class="font-extrabold">Вероятности призов</div>
+        <div class="text-xs text-white/70 mt-1">Вес — относительная вероятность. 0/выкл — не выпадает.</div>
+        <div class="mt-3 space-y-2" id="prizes"></div>
+        <button id="savePrizes" class="mt-3 rounded-2xl bg-white text-black px-4 py-3 font-extrabold w-full">Сохранить вероятности</button>
+      </div>
+
+      <div class="card rounded-3xl p-4">
+        <div class="font-extrabold">Выводы</div>
+        <div class="mt-3 space-y-2 max-h-72 overflow-auto" id="withdraws"></div>
+      </div>
+
+      <div class="card rounded-3xl p-4">
+        <div class="font-extrabold">Заявки на призы</div>
+        <div class="mt-3 space-y-2 max-h-72 overflow-auto" id="prizereqs"></div>
+      </div>
+
+      <div class="card rounded-3xl p-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="font-extrabold">Рефералы</div>
+            <div class="text-xs text-white/70 mt-1">Сводка по пригласившим + детализация по приглашённым и их пополнениям.</div>
+          </div>
+          <button id="loadRefs" class="rounded-2xl bg-white/10 border border-white/15 px-4 py-2 font-extrabold">Обновить</button>
+        </div>
+
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input id="refSearch" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" placeholder="Поиск: referrer_id или invitee_id" />
+          <input id="refFrom" type="date" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" />
+          <input id="refTo" type="date" class="rounded-2xl bg-white/5 border border-white/15 px-3 py-3 text-sm focus:outline-none" />
+        </div>
+        <div class="mt-3 text-[11px] text-white/60">Фильтр по дате применяется к регистрации приглашённых и к их пополнениям.</div>
+
+        <div class="mt-3 space-y-2" id="refSummary"></div>
+
+        <div class="mt-4 hidden" id="refDetailsWrap">
+          <div class="flex items-center justify-between">
+            <div class="font-extrabold">Детализация · referrer <span id="refDetailsTitle">—</span></div>
+            <button id="refDetailsClose" class="rounded-2xl bg-white/10 border border-white/15 px-3 py-2 font-extrabold">Закрыть</button>
+          </div>
+          <div class="mt-3 space-y-2 max-h-80 overflow-auto" id="refDetails"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/static/admin.js"></script>
+</body>
+</html>

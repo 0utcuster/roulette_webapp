@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Stars Roulette</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    html,body{ height:100%; font-family: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .grad{
+      background:
+        radial-gradient(900px 600px at 0% 0%, rgba(99,102,241,.55), transparent 55%),
+        radial-gradient(700px 500px at 100% 0%, rgba(16,185,129,.35), transparent 60%),
+        radial-gradient(700px 500px at 60% 100%, rgba(236,72,153,.20), transparent 60%),
+        linear-gradient(180deg, #0b1020, #070814);
+    }
+    .card{ background: rgba(255,255,255,.08); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.12); }
+    .btn{ transition: transform .12s ease, opacity .12s ease; }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .safe-pad{ padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+    .nav{ padding-bottom: env(safe-area-inset-bottom); }
+    .reel{ will-change: transform; }
+    .prize-card{ position: relative; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.08); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+    .prize-img{ width: 100%; height: 120px; object-fit: cover; display:block; }
+    .prize-overlay{ position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); }
+    .prize-badge{ position:absolute; left:12px; top:12px; padding:6px 10px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); font-size: 11px; font-weight: 800; backdrop-filter: blur(10px); }
+    .prize-title{ position:absolute; left:12px; right:12px; bottom:12px; font-size: 15px; font-weight: 900; letter-spacing: -0.2px; }
+    .roulette-card{ transition: transform .15s ease, box-shadow .15s ease; }
+    .roulette-card:active{ transform: scale(.98); }
+    .modal-backdrop{ background: rgba(0,0,0,.55); backdrop-filter: blur(10px); }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number]{ -moz-appearance: textfield; }
+  </style>
+</head>
+
+<body class="grad text-white">
+  <div class="min-h-screen safe-pad">
+    <header class="px-4 pt-5">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 grid place-items-center">⭐</div>
+          <div>
+            <div class="text-xs text-white/70">Telegram Stars</div>
+            <div class="text-xl font-extrabold tracking-tight">Stars Roulette</div>
+          </div>
+        </div>
+        <div class="card rounded-2xl px-3 py-2">
+          <div class="text-[11px] text-white/70 leading-none">Баланс</div>
+          <div class="font-extrabold text-sm"><span id="balance">—</span>⭐</div>
+        </div>
+      </div>
+
+      <div class="mt-4 card rounded-3xl p-4">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <div class="text-sm font-extrabold">Панель управления</div>
+            <div class="mt-1 text-xs text-white/70">
+              Спин стоит <span class="font-bold" id="spin-cost-inline">—</span>⭐. Выпадают тикеты, скидки или Stars.
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button id="depositBtn" class="btn rounded-2xl bg-white text-black font-extrabold px-4 py-2.5">Пополнить</button>
+            <button id="withdrawBtn" class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold px-4 py-2.5">Вывод</button>
+          </div>
+        </div>
+        <div class="mt-2 text-[11px] text-white/60" id="msg">—</div>
+      </div>
+    </header>
+
+    <main class="px-4 mt-4 space-y-4">
+      <!-- РУЛЕТКА -->
+      <section id="screen-roulette" class="space-y-4">
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="text-sm font-extrabold tracking-tight text-white/90">Выберите рулетку</div>
+            <button id="btn-roulette-info" class="text-xs font-bold text-white/60 hover:text-white/90">Правила</button>
+          </div>
+          <div id="roulette-grid" class="mt-2 grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <div id="roulette-title" class="text-lg font-black tracking-tight">Рулетка</div>
+            <div class="text-xs font-bold text-white/55">Прокрут: <span id="spin-cost">—</span>⭐</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-bold text-white/55">Баланс</div>
+            <div id="balance-top" class="text-base font-black">—</div>
+          </div>
+        </div>
+
+        <div class="card rounded-3xl p-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-xs text-white/70">🎰 Рулетка</div>
+              <div class="text-lg font-extrabold">Крутите за <span id="spinCostTitle">—</span>⭐</div>
+              <div class="text-xs text-white/70 mt-1">В ленте — кроссы/браслет, а при выигрыше — тикет.</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] text-white/70">Билеты</div>
+              <div class="font-extrabold text-sm">👟 <span id="tSneakers">0</span>/10</div>
+              <div class="font-extrabold text-sm">📿 <span id="tBracelet">0</span>/5</div>
+            </div>
+          </div>
+
+          <div class="mt-4 relative overflow-hidden rounded-3xl border border-white/15 bg-white/5" style="height: 320px;">
+            <div class="absolute inset-0 pointer-events-none">
+              <div class="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-white/20"></div>
+              <div class="absolute left-0 right-0 top-0 h-10 bg-gradient-to-b from-[#070814] to-transparent"></div>
+              <div class="absolute left-0 right-0 bottom-0 h-10 bg-gradient-to-t from-[#070814] to-transparent"></div>
+            </div>
+            <div id="reel" class="reel flex flex-col gap-3 py-5 px-4" style="transform: translateY(0px);"></div>
+          </div>
+
+          <button id="spinBtn" class="btn mt-4 w-full rounded-2xl bg-white text-black font-extrabold py-4">Крутить</button>
+          <div class="mt-2 text-xs text-white/60">Стоимость прокрута: <span id="spinCost" class="font-bold text-white/80">—</span>⭐</div>
+
+          <div class="mt-3 hidden" id="spinResult">
+            <div class="rounded-2xl bg-white/10 border border-white/15 p-3">
+              <div class="text-[11px] text-white/70">Результат</div>
+              <div class="font-extrabold" id="spinText">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-3xl p-4">
+          <div class="font-extrabold">Физические призы</div>
+          <div class="text-xs text-white/70 mt-1">Когда накопите билеты — запросите приз, заявка попадёт в админку.</div>
+          <div class="mt-3 grid grid-cols-1 gap-2">
+            <button id="reqSneakers" class="btn rounded-2xl bg-white/10 border border-white/15 py-3 font-extrabold disabled:opacity-40" disabled>👟 Запросить кроссовки</button>
+            <button id="reqBracelet" class="btn rounded-2xl bg-white/10 border border-white/15 py-3 font-extrabold disabled:opacity-40" disabled>📿 Запросить браслет</button>
+          </div>
+          <div class="mt-2 text-[11px] text-white/60" id="prizeHint">—</div>
+        </div>
+      </section>
+
+      <!-- КАБИНЕТ -->
+      <section id="screen-cabinet" class="space-y-4 hidden">
+        <div class="card rounded-3xl p-4">
+          <div class="text-xs text-white/70">👤 Личный кабинет</div>
+          <div class="text-lg font-extrabold mt-1">Профиль и прогресс</div>
+
+          <div class="mt-3 grid grid-cols-1 gap-3">
+            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
+              <div class="flex items-center justify-between">
+                <div class="font-extrabold">👟 Кроссовки</div>
+                <div class="text-xs text-white/70"><span id="cabSneakers">0</span>/10</div>
+              </div>
+              <div class="mt-2 h-2.5 rounded-full bg-white/10 overflow-hidden">
+                <div id="barSneakers" class="h-full bg-white/60" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
+              <div class="flex items-center justify-between">
+                <div class="font-extrabold">📿 Браслет</div>
+                <div class="text-xs text-white/70"><span id="cabBracelet">0</span>/5</div>
+              </div>
+              <div class="mt-2 h-2.5 rounded-full bg-white/10 overflow-hidden">
+                <div id="barBracelet" class="h-full bg-white/60" style="width:0%"></div>
+              </div>
+            </div>
+
+            <!-- РЕФЕРАЛКА -->
+            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
+              <div class="text-[11px] text-white/70">Ваша реферальная ссылка</div>
+              <div class="mt-2 flex gap-2">
+                <input id="refLink" class="w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-xs focus:outline-none" value="—" readonly/>
+                <button id="copyRef" class="btn rounded-2xl bg-white text-black font-extrabold px-4">Copy</button>
+              </div>
+              <div class="mt-2 text-[11px] text-white/60">+100⭐ Вам, +50⭐ другу при первом входе по ссылке.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-3xl p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-white/70">История</div>
+              <div class="font-extrabold">Последние операции</div>
+            </div>
+            <button id="moreHistory" class="btn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 font-extrabold">Ещё</button>
+          </div>
+          <div class="mt-3 space-y-2" id="history"></div>
+        </div>
+
+        <div class="card rounded-3xl p-4">
+          <div class="text-xs text-white/70">FAQ</div>
+          <div class="font-extrabold mt-1">Частые вопросы</div>
+
+          <div class="mt-3 space-y-2 text-sm">
+            <details class="rounded-2xl bg-white/5 border border-white/15 p-3">
+              <summary class="font-extrabold cursor-pointer">Что выпадает в рулетке?</summary>
+              <div class="mt-2 text-white/70 text-xs">Выпадают тикеты, скидки или Stars. Кроссовки/браслет напрямую не падают — только тикеты.</div>
+            </details>
+            <details class="rounded-2xl bg-white/5 border border-white/15 p-3">
+              <summary class="font-extrabold cursor-pointer">Как работает реферальная система?</summary>
+              <div class="mt-2 text-white/70 text-xs">При первом входе по Вашей ссылке: Вам +100⭐, другу +50⭐.</div>
+            </details>
+          </div>
+        </div>
+
+        <a id="adminLink" class="hidden card rounded-3xl p-4 block" href="/admin">
+          <div class="font-extrabold">⚙️ Админка</div>
+          <div class="text-xs text-white/70 mt-1">Доступно только админам.</div>
+        </a>
+      </section>
+    </main>
+
+    <nav class="nav fixed bottom-0 inset-x-0 bg-black/30 backdrop-blur border-t border-white/10">
+      <div class="max-w-md mx-auto px-4 py-3 grid grid-cols-2 gap-3">
+        <button class="btn rounded-2xl bg-white text-black font-extrabold py-3" id="navRoulette">🎰 Рулетка</button>
+        <button class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold py-3" id="navCabinet">👤 Кабинет</button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Deposit modal -->
+  <div id="depositModal" class="hidden fixed inset-0 modal-backdrop z-50">
+    <div class="min-h-full grid place-items-center px-4">
+      <div class="card w-full max-w-sm rounded-3xl p-4">
+        <div class="text-sm font-extrabold">Пополнить Stars</div>
+        <div class="text-xs text-white/70 mt-1">Введите сумму (⭐)</div>
+        <input id="depositAmount" type="number" min="1" step="1"
+               class="mt-3 w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-sm focus:outline-none"
+               placeholder="Например: 500" />
+        <div class="mt-3 flex gap-2">
+          <button id="depositCancel" class="btn flex-1 rounded-2xl bg-white/10 border border-white/15 font-extrabold py-3">Отмена</button>
+          <button id="depositConfirm" class="btn flex-1 rounded-2xl bg-white text-black font-extrabold py-3">Оплатить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw modal -->
+  <div id="withdrawModal" class="hidden fixed inset-0 modal-backdrop z-50">
+    <div class="min-h-full grid place-items-center px-4">
+      <div class="card w-full max-w-sm rounded-3xl p-4">
+        <div class="text-sm font-extrabold">Вывод Stars</div>
+        <div class="text-xs text-white/70 mt-1">Введите сумму (минимум 1000⭐)</div>
+        <input id="withdrawAmount" type="number" min="1000" step="1"
+               class="mt-3 w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-sm focus:outline-none"
+               placeholder="Например: 1000" />
+        <div class="mt-3 flex gap-2">
+          <button id="withdrawCancel" class="btn flex-1 rounded-2xl bg-white/10 border border-white/15 font-extrabold py-3">Отмена</button>
+          <button id="withdrawConfirm" class="btn flex-1 rounded-2xl bg-white text-black font-extrabold py-3">Отправить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/static/mobile.js?v=200"></script>
+</body>
+</html>

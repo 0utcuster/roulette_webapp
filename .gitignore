@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+.env
+.venv/
+.pytest_cache/

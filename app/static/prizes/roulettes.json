@@ -1,0 +1,196 @@
+{
+  "roulettes": {
+    "r1": {
+      "title": "Streetwear Drop",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r1/ticket_sneakers_1.svg",
+          "/static/prizes/r1/ticket_sneakers_2.svg",
+          "/static/prizes/r1/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r1/ticket_bracelet_1.svg",
+          "/static/prizes/r1/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r1/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r1/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r1/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r1/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r1/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r1/stars_1000.svg"
+        ]
+      }
+    },
+    "r2": {
+      "title": "Gadgets Spin",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r2/ticket_sneakers_1.svg",
+          "/static/prizes/r2/ticket_sneakers_2.svg",
+          "/static/prizes/r2/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r2/ticket_bracelet_1.svg",
+          "/static/prizes/r2/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r2/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r2/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r2/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r2/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r2/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r2/stars_1000.svg"
+        ]
+      }
+    },
+    "r3": {
+      "title": "Luxury Night",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r3/ticket_sneakers_1.svg",
+          "/static/prizes/r3/ticket_sneakers_2.svg",
+          "/static/prizes/r3/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r3/ticket_bracelet_1.svg",
+          "/static/prizes/r3/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r3/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r3/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r3/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r3/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r3/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r3/stars_1000.svg"
+        ]
+      }
+    },
+    "r4": {
+      "title": "Travel Vibes",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r4/ticket_sneakers_1.svg",
+          "/static/prizes/r4/ticket_sneakers_2.svg",
+          "/static/prizes/r4/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r4/ticket_bracelet_1.svg",
+          "/static/prizes/r4/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r4/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r4/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r4/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r4/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r4/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r4/stars_1000.svg"
+        ]
+      }
+    },
+    "r5": {
+      "title": "Gaming Loot",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r5/ticket_sneakers_1.svg",
+          "/static/prizes/r5/ticket_sneakers_2.svg",
+          "/static/prizes/r5/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r5/ticket_bracelet_1.svg",
+          "/static/prizes/r5/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r5/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r5/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r5/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r5/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r5/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r5/stars_1000.svg"
+        ]
+      }
+    },
+    "r6": {
+      "title": "Mystery Vault",
+      "items": {
+        "ticket_sneakers": [
+          "/static/prizes/r6/ticket_sneakers_1.svg",
+          "/static/prizes/r6/ticket_sneakers_2.svg",
+          "/static/prizes/r6/ticket_sneakers_3.svg"
+        ],
+        "ticket_bracelet": [
+          "/static/prizes/r6/ticket_bracelet_1.svg",
+          "/static/prizes/r6/ticket_bracelet_2.svg"
+        ],
+        "discount_10": [
+          "/static/prizes/r6/discount_10.svg"
+        ],
+        "discount_20": [
+          "/static/prizes/r6/discount_20.svg"
+        ],
+        "discount_50": [
+          "/static/prizes/r6/discount_50.svg"
+        ],
+        "stars_150": [
+          "/static/prizes/r6/stars_150.svg"
+        ],
+        "stars_500": [
+          "/static/prizes/r6/stars_500.svg"
+        ],
+        "stars_1000": [
+          "/static/prizes/r6/stars_1000.svg"
+        ]
+      }
+    }
+  }
+}

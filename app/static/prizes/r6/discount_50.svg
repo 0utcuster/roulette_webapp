@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070814"/>
+      <stop offset="0.6" stop-color="#121a35"/>
+      <stop offset="1" stop-color="#050510"/>
+    </linearGradient>
+    <radialGradient id="r" cx="25%" cy="20%" r="85%">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.40"/>
+      <stop offset="0.55" stop-color="#10b981" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1200" rx="72" fill="url(#g)"/>
+  <rect width="900" height="1200" rx="72" fill="url(#r)"/>
+  <rect x="80" y="100" width="740" height="1000" rx="64" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.16)" stroke-width="3"/>
+  <text x="450" y="440" text-anchor="middle" font-family="Manrope, Arial" font-size="92" font-weight="900" fill="rgba(255,255,255,0.92)">💸</text>
+  <text x="450" y="540" text-anchor="middle" font-family="Manrope, Arial" font-size="34" font-weight="800" fill="rgba(255,255,255,0.65)">DISCOUNT 50</text>
+  <text x="450" y="1035" text-anchor="middle" font-family="Manrope, Arial" font-size="24" font-weight="700" fill="rgba(255,255,255,0.55)">Replace with your photo • r6</text>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.55" stop-color="#111a35"/>
+      <stop offset="1" stop-color="#070814"/>
+    </linearGradient>
+    <radialGradient id="r" cx="20%" cy="20%" r="80%">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.45"/>
+      <stop offset="0.6" stop-color="#10b981" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="1200" rx="72" fill="url(#g)"/>
+  <rect x="0" y="0" width="900" height="1200" rx="72" fill="url(#r)"/>
+  <g filter="url(#shadow)">
+    <rect x="90" y="110" width="720" height="980" rx="64" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.16)" stroke-width="3"/>
+  </g>
+
+  <g opacity="0.9">
+    <circle cx="160" cy="210" r="9" fill="rgba(255,255,255,0.6)"/>
+    <circle cx="220" cy="250" r="6" fill="rgba(255,255,255,0.5)"/>
+    <circle cx="690" cy="260" r="7" fill="rgba(255,255,255,0.45)"/>
+    <circle cx="740" cy="210" r="10" fill="rgba(255,255,255,0.55)"/>
+  </g>
+
+  <text x="450" y="450" text-anchor="middle" font-family="Manrope, Arial" font-size="84" font-weight="800" fill="rgba(255,255,255,0.92)">💸</text>
+  <text x="450" y="535" text-anchor="middle" font-family="Manrope, Arial" font-size="34" font-weight="700" fill="rgba(255,255,255,0.65)">Discount 10%</text>
+
+  <g opacity="0.85">
+    <path d="M450 690 C520 600, 650 630, 650 740 C650 840, 540 910, 450 980 C360 910, 250 840, 250 740 C250 630, 380 600, 450 690 Z"
+          fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  </g>
+
+  <text x="450" y="1040" text-anchor="middle" font-family="Manrope, Arial" font-size="24" font-weight="700" fill="rgba(255,255,255,0.55)">Replace this SVG with your photo</text>
+</svg>
