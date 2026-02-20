@@ -102,4 +102,15 @@ class PrizeConfig(Base):
     weight: Mapped[int] = mapped_column(Integer, default=1)
     is_enabled: Mapped[int] = mapped_column(Integer, default=1)
 
+
+class CaseConfig(Base):
+    __tablename__ = "case_config"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    title: Mapped[str] = mapped_column(String(120), default="")
+    spin_cost: Mapped[int] = mapped_column(Integer, default=150)
+    slots: Mapped[int] = mapped_column(Integer, default=20)
+    prizes: Mapped[list] = mapped_column(JSON, default=list)
+    is_enabled: Mapped[int] = mapped_column(Integer, default=1)
+
+
 Index("ix_transactions_user_created", Transaction.user_id, Transaction.created_at.desc())

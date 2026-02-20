@@ -1,195 +1,110 @@
 {
   "roulettes": {
     "r1": {
-      "title": "Streetwear Drop",
+      "title": "Обувной",
+      "spin_cost": 259,
+      "avatar": "/static/prizes/sneakers_1.svg",
+      "desc": "Топовый обувной дроп: кроссы, скидки и звезды.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r1/ticket_sneakers_1.svg",
-          "/static/prizes/r1/ticket_sneakers_2.svg",
-          "/static/prizes/r1/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r1/ticket_bracelet_1.svg",
-          "/static/prizes/r1/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r1/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r1/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r1/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r1/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r1/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r1/stars_1000.svg"
-        ]
+        "shoes": ["/static/prizes/sneakers_1.svg", "/static/prizes/sneakers_2.svg", "/static/prizes/sneakers_3.svg"],
+        "discount_20": ["/static/prizes/discount_20.svg"],
+        "discount_10": ["/static/prizes/discount_10.svg"],
+        "stars_200": ["/static/prizes/stars_150.svg"],
+        "stars_100": ["/static/prizes/stars_150.svg"]
       }
     },
     "r2": {
-      "title": "Gadgets Spin",
+      "title": "Стрит",
+      "spin_cost": 229,
+      "avatar": "/static/prizes/r2/ticket_sneakers_1.svg",
+      "desc": "Уличный набор: толстовки, футболки, джинсы и бонусы.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r2/ticket_sneakers_1.svg",
-          "/static/prizes/r2/ticket_sneakers_2.svg",
-          "/static/prizes/r2/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r2/ticket_bracelet_1.svg",
-          "/static/prizes/r2/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r2/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r2/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r2/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r2/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r2/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r2/stars_1000.svg"
-        ]
+        "hoodie": ["/static/prizes/r2/ticket_bracelet_1.svg"],
+        "tshirt": ["/static/prizes/r2/ticket_sneakers_1.svg"],
+        "jeans": ["/static/prizes/r2/ticket_sneakers_2.svg"],
+        "discount_10": ["/static/prizes/discount_10.svg"],
+        "stars_100": ["/static/prizes/stars_150.svg"]
       }
     },
     "r3": {
-      "title": "Luxury Night",
+      "title": "Вумен",
+      "spin_cost": 239,
+      "avatar": "/static/prizes/sneakers_2.svg",
+      "desc": "Женский кейс с модными призами и скидками.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r3/ticket_sneakers_1.svg",
-          "/static/prizes/r3/ticket_sneakers_2.svg",
-          "/static/prizes/r3/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r3/ticket_bracelet_1.svg",
-          "/static/prizes/r3/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r3/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r3/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r3/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r3/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r3/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r3/stars_1000.svg"
-        ]
+        "women_shoes": ["/static/prizes/sneakers_2.svg"],
+        "women_hoodie": ["/static/prizes/r3/ticket_bracelet_2.svg"],
+        "discount_20": ["/static/prizes/discount_20.svg"],
+        "discount_10": ["/static/prizes/discount_10.svg"],
+        "stars_100": ["/static/prizes/stars_150.svg"]
       }
     },
     "r4": {
-      "title": "Travel Vibes",
+      "title": "LIMITED DROP 🔥",
+      "spin_cost": 299,
+      "avatar": "/static/prizes/r4/ticket_sneakers_3.svg",
+      "desc": "Лимитка с редкими дропами и увеличенными наградами.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r4/ticket_sneakers_1.svg",
-          "/static/prizes/r4/ticket_sneakers_2.svg",
-          "/static/prizes/r4/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r4/ticket_bracelet_1.svg",
-          "/static/prizes/r4/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r4/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r4/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r4/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r4/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r4/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r4/stars_1000.svg"
-        ]
+        "limited_shoes": ["/static/prizes/sneakers_3.svg"],
+        "exclusive_hoodie": ["/static/prizes/r4/ticket_bracelet_1.svg"],
+        "tshirt": ["/static/prizes/r4/ticket_sneakers_1.svg"],
+        "discount_30": ["/static/prizes/discount_50.svg"],
+        "stars_300": ["/static/prizes/stars_500.svg"],
+        "stars_150": ["/static/prizes/stars_150.svg"]
       }
     },
     "r5": {
-      "title": "Gaming Loot",
+      "title": "GOLD VIBE ✨",
+      "spin_cost": 279,
+      "avatar": "/static/prizes/bracelet_1.svg",
+      "desc": "Золотой вайб: украшения, сертификат и жирные скидки.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r5/ticket_sneakers_1.svg",
-          "/static/prizes/r5/ticket_sneakers_2.svg",
-          "/static/prizes/r5/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r5/ticket_bracelet_1.svg",
-          "/static/prizes/r5/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r5/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r5/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r5/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r5/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r5/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r5/stars_1000.svg"
-        ]
+        "bracelet": ["/static/prizes/bracelet_1.svg", "/static/prizes/bracelet_2.svg"],
+        "cert_3000": ["/static/prizes/r5/ticket_sneakers_3.svg"],
+        "discount_25": ["/static/prizes/discount_20.svg"],
+        "discount_15": ["/static/prizes/discount_10.svg"],
+        "stars_200": ["/static/prizes/stars_150.svg"]
       }
     },
     "r6": {
-      "title": "Mystery Vault",
+      "title": "ULTIMATE STREET BOX 🚀",
+      "spin_cost": 329,
+      "avatar": "/static/prizes/r6/ticket_sneakers_3.svg",
+      "desc": "Ультимативный стрит-бокс с мощными предметами.",
       "items": {
-        "ticket_sneakers": [
-          "/static/prizes/r6/ticket_sneakers_1.svg",
-          "/static/prizes/r6/ticket_sneakers_2.svg",
-          "/static/prizes/r6/ticket_sneakers_3.svg"
-        ],
-        "ticket_bracelet": [
-          "/static/prizes/r6/ticket_bracelet_1.svg",
-          "/static/prizes/r6/ticket_bracelet_2.svg"
-        ],
-        "discount_10": [
-          "/static/prizes/r6/discount_10.svg"
-        ],
-        "discount_20": [
-          "/static/prizes/r6/discount_20.svg"
-        ],
-        "discount_50": [
-          "/static/prizes/r6/discount_50.svg"
-        ],
-        "stars_150": [
-          "/static/prizes/r6/stars_150.svg"
-        ],
-        "stars_500": [
-          "/static/prizes/r6/stars_500.svg"
-        ],
-        "stars_1000": [
-          "/static/prizes/r6/stars_1000.svg"
-        ]
+        "full_look": ["/static/prizes/r6/ticket_sneakers_3.svg"],
+        "shoes": ["/static/prizes/sneakers_1.svg"],
+        "hoodie": ["/static/prizes/r6/ticket_bracelet_1.svg"],
+        "discount_20": ["/static/prizes/discount_20.svg"],
+        "stars_150": ["/static/prizes/stars_150.svg"]
+      }
+    },
+    "r7": {
+      "title": "STAR JACKPOT 🎰",
+      "spin_cost": 199,
+      "avatar": "/static/prizes/stars_1000.svg",
+      "desc": "Максимальный шанс на крупные звездные призы.",
+      "items": {
+        "stars_1000": ["/static/prizes/stars_1000.svg"],
+        "stars_500": ["/static/prizes/stars_500.svg"],
+        "stars_300": ["/static/prizes/stars_500.svg"],
+        "stars_150": ["/static/prizes/stars_150.svg"],
+        "stars_50": ["/static/prizes/stars_150.svg"],
+        "stars_0": ["/static/prizes/discount_10.svg"]
+      }
+    },
+    "r8": {
+      "title": "SECRET LEVEL 🔐",
+      "spin_cost": 289,
+      "avatar": "/static/prizes/r1/ticket_sneakers_3.svg",
+      "desc": "Секретный кейс: премиальные призы и VIP-ключ.",
+      "items": {
+        "shoes": ["/static/prizes/sneakers_2.svg"],
+        "hoodie": ["/static/prizes/r1/ticket_bracelet_2.svg"],
+        "discount_30": ["/static/prizes/discount_50.svg"],
+        "stars_200": ["/static/prizes/stars_150.svg"],
+        "stars_100": ["/static/prizes/stars_150.svg"],
+        "vip_key": ["/static/prizes/r1/ticket_sneakers_3.svg"]
       }
     }
   }

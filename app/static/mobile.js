@@ -2,6 +2,13 @@ const tg = window.Telegram?.WebApp || null;
 
 function $(id){ return document.getElementById(id); }
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+function esc(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
 
 function initDataHeader(){
   const initData = tg?.initData || "";
@@ -31,31 +38,83 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 function keyTitle(key){
   const m={
-    ticket_sneakers:"👟 Кроссовки",
-    ticket_bracelet:"📿 Браслет",
+    shoes:"👟 Обувь",
+    women_shoes:"👟 Женская обувь",
+    limited_shoes:"👟 Лимит обувь",
+    hoodie:"🧥 Толстовка",
+    women_hoodie:"🧥 Женские толстовки",
+    exclusive_hoodie:"🧥 Эксклюзив худи",
+    tshirt:"👕 Футболка",
+    jeans:"👖 Джинсы",
+    bracelet:"📿 Браслет",
+    cert_3000:"🎁 Сертификат 3000₽",
+    full_look:"🛍️ Полный образ",
+    vip_key:"🔐 VIP-ключ",
+    stars_0:"⭐ 0",
+    stars_50:"⭐ 50",
+    stars_100:"⭐ 100",
+    stars_200:"⭐ 200",
+    stars_300:"⭐ 300",
     discount_10:"💸 10%",
+    discount_15:"💸 15%",
     discount_20:"💸 20%",
+    discount_25:"💸 25%",
+    discount_30:"💸 30%",
     discount_50:"💸 50%",
     stars_150:"⭐ 150",
     stars_500:"⭐ 500",
     stars_1000:"⭐ 1000",
   };
-  return m[key] || key;
+  return m[key] || String(key || "").replaceAll("_"," ");
 }
-function keyBadge(key){
-  if(key.startsWith("ticket_")) return "Главный приз";
-  if(key.startsWith("discount_")) return "Скидка";
-  return "Stars";
-}
-const ORDER=["ticket_sneakers","ticket_bracelet","discount_10","discount_20","discount_50","stars_150","stars_500","stars_1000"];
 
-let state={ rouletteId:"r1", rouletteCost:150 };
+function keyBadge(key){
+  if(String(key).startsWith("discount_")) return "Скидка";
+  if(String(key).startsWith("stars_")) return "Stars";
+  return "Приз";
+}
+
+let state={ rouletteId:null, rouletteCost:0, currentCase:null, cases:[] };
 
 function setMsg(text){ const el=$("msg"); if(el) el.textContent=text||"—"; }
+
+function openResultOverlay({badge="Статус", title="", text="", primary="Ок", secondary="", onPrimary=null, onSecondary=null}){
+  const box=$("resultOverlay");
+  if(!box) return;
+  $("resultBadge").textContent=badge;
+  $("resultTitle").textContent=title;
+  $("resultText").textContent=text;
+
+  const p=$("resultPrimary");
+  const s=$("resultSecondary");
+  p.textContent=primary || "Ок";
+  s.textContent=secondary || "Ок";
+
+  if(secondary){
+    s.classList.remove("hidden");
+    p.classList.remove("col-span-2");
+  }else{
+    s.classList.add("hidden");
+    p.classList.add("col-span-2");
+  }
+
+  p.onclick=()=>{
+    box.classList.add("hidden");
+    if(typeof onPrimary==="function") onPrimary();
+  };
+  s.onclick=()=>{
+    box.classList.add("hidden");
+    if(typeof onSecondary==="function") onSecondary();
+  };
+
+  box.classList.remove("hidden");
+}
+
 function setBalance(balance){
   if($("balance")) $("balance").textContent=String(balance ?? "—");
   if($("balance-top")) $("balance-top").textContent=`${balance ?? "—"}⭐`;
 }
+
 function setTickets(s,b){
   if($("tSneakers")) $("tSneakers").textContent=String(s||0);
   if($("tBracelet")) $("tBracelet").textContent=String(b||0);
@@ -102,6 +161,54 @@ function showScreen(which){
   }
 }
 
+function openCasePreview(c){
+  const modal=$("casePreviewModal"); if(!modal) return;
+  const items=c.items||{};
+  const firstKey=Object.keys(items)[0];
+  const thumb=c.avatar || (firstKey ? ((items[firstKey]||[])[0] || "") : "");
+  $("casePreviewImg").src=thumb || "";
+  $("casePreviewTitle").textContent=c.title || c.id;
+  $("casePreviewDesc").textContent=c.desc || "Открой кейс и забери мощный дроп.";
+  $("casePreviewPrice").textContent=`${c.cost}⭐`;
+  $("casePreviewPrizes").innerHTML = Object.keys(items).slice(0,6).map(k=>`<span class="case-tag">${esc(keyTitle(k))}</span>`).join("") || `<span class="case-tag">Без призов</span>`;
+  $("casePreviewSelect").onclick=async ()=>{
+    await selectCase(c, {silent:false});
+    modal.classList.add("hidden");
+  };
+  modal.classList.remove("hidden");
+}
+
+async function selectCase(c, {silent=true}={}){
+  state.currentCase=c;
+  state.rouletteId=c.id;
+  state.rouletteCost=c.cost;
+
+  document.querySelectorAll(".roulette-card").forEach(x=>x.classList.remove("selected","ring-2","ring-white/40"));
+  const cards=[...document.querySelectorAll(".roulette-card")];
+  const idx=state.cases.findIndex(x=>x.id===c.id);
+  if(idx>=0 && cards[idx]) cards[idx].classList.add("selected","ring-2","ring-white/40");
+
+  if($("roulette-title")) $("roulette-title").textContent=c.title;
+  if($("spin-cost")) $("spin-cost").textContent=String(c.cost);
+  if($("spinCost")) $("spinCost").textContent=String(c.cost);
+  if($("spinCostTitle")) $("spinCostTitle").textContent=String(c.cost);
+  if($("spin-cost-inline")) $("spin-cost-inline").textContent=String(c.cost);
+
+  await buildReel(c.id, "reelModal");
+  const openBtn=$("openSpinModalBtn");
+  if(openBtn){
+    openBtn.disabled=false;
+    openBtn.classList.remove("opacity-50");
+    openBtn.classList.add("pulse");
+    openBtn.textContent=`Открыть ${c.title}`;
+  }
+  if($("spinModalTitle")) $("spinModalTitle").textContent=c.title;
+  if(!silent){
+    $("caseSpinModal")?.classList.remove("hidden");
+    setMsg(`Выбран кейс: ${c.title}. Можно крутить.`);
+  }
+}
+
 async function buildRouletteGrid(){
   const grid=$("roulette-grid");
   if(!grid) return;
@@ -111,59 +218,51 @@ async function buildRouletteGrid(){
     id,
     title: imgs.roulettes[id].title||id,
     cost: imgs.roulettes[id].spin_cost||150,
+    desc: imgs.roulettes[id].desc || "Выбери кейс и забирай лучший дроп",
+    avatar: imgs.roulettes[id].avatar || "",
     items: imgs.roulettes[id].items||{}
   }));
+  state.cases=list;
 
   grid.innerHTML="";
-  for(const r of list){
-    const items=r.items;
-    const thumb=(items.ticket_sneakers && items.ticket_sneakers[0]) ||
-                (items.ticket_bracelet && items.ticket_bracelet[0]) ||
-                (items.stars_150 && items.stars_150[0]) || "";
-
+  for(const c of list){
+    const firstKey = Object.keys(c.items||{})[0];
+    const thumb = c.avatar || (firstKey ? ((c.items[firstKey]||[])[0] || "") : "");
     const btn=document.createElement("button");
-    btn.className="roulette-card text-left rounded-3xl border border-white/15 bg-white/5 overflow-hidden relative";
+    btn.className="roulette-card text-left rounded-3xl border border-white/15 bg-white/5 overflow-hidden relative p-2";
     btn.innerHTML=`
-      <div class="relative p-3">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-16 rounded-2xl overflow-hidden border border-white/15 bg-black/20">
-            ${thumb?`<img src="${thumb}" class="w-full h-full object-cover"/>`:``}
-          </div>
-          <div class="min-w-0">
-            <div class="text-sm font-black truncate">${r.title}</div>
-            <div class="text-xs font-bold text-white/60">${r.cost}⭐ за спин</div>
-          </div>
-        </div>
+      <div class="case-cover">
+        ${thumb?`<img src="${thumb}" alt="${esc(c.title)}"/>`:``}
+        <div class="absolute left-2 top-2 z-10 case-tag">${c.cost}⭐</div>
+        <div class="absolute left-2 right-2 bottom-2 z-10 text-sm font-black truncate">${esc(c.title)}</div>
+      </div>
+      <div class="p-2">
+        <div class="text-[11px] text-white/60 line-clamp-2">${esc(c.desc)}</div>
       </div>
     `;
-    btn.addEventListener("click", async ()=>{
-      state.rouletteId=r.id;
-      state.rouletteCost=r.cost;
-
-      document.querySelectorAll(".roulette-card").forEach(x=>x.classList.remove("ring-2","ring-white/40"));
-      btn.classList.add("ring-2","ring-white/40");
-
-      if($("roulette-title")) $("roulette-title").textContent=r.title;
-      if($("spin-cost")) $("spin-cost").textContent=String(r.cost);
-      if($("spinCost")) $("spinCost").textContent=String(r.cost);
-      if($("spinCostTitle")) $("spinCostTitle").textContent=String(r.cost);
-      if($("spin-cost-inline")) $("spin-cost-inline").textContent=String(r.cost);
-
-      await buildReel(r.id);
-    });
-
+    btn.addEventListener("click", ()=>openCasePreview(c));
     grid.appendChild(btn);
   }
 
-  grid.firstElementChild?.click();
+  const openBtn=$("openSpinModalBtn");
+  if(openBtn){
+    openBtn.disabled=true;
+    openBtn.classList.remove("pulse");
+    openBtn.classList.add("opacity-50");
+    openBtn.textContent="Сначала выберите кейс";
+  }
 }
 
-async function buildReel(rouletteId){
-  const reel=$("reel"); if(!reel) return;
+async function buildReel(rouletteId, reelId="reelModal"){
+  const reel=$(reelId); if(!reel) return;
 
   const imgs=await loadRouletteImages();
   const itemsMap=imgs.roulettes?.[rouletteId]?.items||{};
-  const keys=ORDER.filter(k=>itemsMap[k] && itemsMap[k].length);
+  const keys=Object.keys(itemsMap).filter(k=>itemsMap[k] && itemsMap[k].length);
+  if(!keys.length){
+    reel.innerHTML="";
+    return;
+  }
 
   reel.innerHTML="";
   for(let i=0;i<40;i++){
@@ -183,9 +282,11 @@ async function buildReel(rouletteId){
   reel.style.transform="translateY(0px)";
 }
 
-async function animateToPrize(prizeKey){
-  const reel=$("reel");
+async function animateToPrize(prizeKey, reelId="reelModal"){
+  const reel=$(reelId);
   const items=[...reel.querySelectorAll(".prize-card")];
+  if(!items.length) return;
+
   const cand=[];
   items.forEach((el,i)=>{ if(el.dataset.key===prizeKey) cand.push(i); });
   const targetIndex = cand.length ? cand[Math.floor(Math.random()*cand.length)] : 10;
@@ -241,7 +342,6 @@ async function loadHistory(){
   }
 }
 
-// ---------- MODALS (amount input) ----------
 function openModal(id){
   const m=$(id);
   if(m) m.classList.remove("hidden");
@@ -267,7 +367,15 @@ async function doDeposit(amount){
     if(status==="paid"){
       setMsg("✅ Оплата прошла. Обновляю баланс…");
       setTimeout(()=>loadMe().catch(()=>{}), 1200);
-    }else setMsg("Платёж не завершён.");
+      openResultOverlay({
+        badge:"Успех",
+        title:"Баланс пополнен",
+        text:`Оплата на ${amount}⭐ прошла успешно.`,
+        primary:"Продолжить"
+      });
+    }else{
+      setMsg("Платёж не завершён.");
+    }
   });
 }
 
@@ -283,12 +391,15 @@ async function doWithdraw(amount){
 async function doSpin(){
   const btn=$("spinBtn"); if(btn) btn.disabled=true;
   try{
+    if(!state.currentCase){
+      throw new Error("Сначала выберите кейс");
+    }
     setMsg("Крутим…");
     const res = await api("/api/spin", {
       method:"POST",
       body: JSON.stringify({ roulette_id: state.rouletteId })
     });
-    await animateToPrize(res.prize_key);
+    await animateToPrize(res.prize_key, "reelModal");
 
     $("spinResult")?.classList.remove("hidden");
     if($("spinText")) $("spinText").textContent = res.message || "—";
@@ -296,8 +407,33 @@ async function doSpin(){
     setBalance(res.balance);
     setTickets(res.tickets_sneakers, res.tickets_bracelet);
     setMsg("✅ Готово!");
+    openResultOverlay({
+      badge:"Выигрыш",
+      title:keyTitle(res.prize_key || ""),
+      text:res.message || "Результат начислен",
+      primary:"Забрать",
+      onPrimary:()=>{$("caseSpinModal")?.classList.add("hidden");}
+    });
   }catch(e){
-    setMsg(`Ошибка: ${e.message}`);
+    const msg=String(e.message||"Ошибка");
+    setMsg(`Ошибка: ${msg}`);
+    if(msg.toLowerCase().includes("недостаточно")){
+      openResultOverlay({
+        badge:"Недостаточно баланса",
+        title:"Не хватает Stars",
+        text:`Для открытия нужно ${state.rouletteCost}⭐`,
+        primary:"Пополнить",
+        secondary:"Позже",
+        onPrimary:()=>{$("depositBtn")?.click();}
+      });
+    }else{
+      openResultOverlay({
+        badge:"Ошибка",
+        title:"Спин не выполнен",
+        text:msg,
+        primary:"Понятно"
+      });
+    }
   }finally{
     if(btn) btn.disabled=false;
   }
@@ -313,7 +449,21 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   try{
     if(tg){ tg.ready(); tg.expand?.(); }
 
-    // Tabs
+    $("casePreviewClose")?.addEventListener("click", ()=>$("casePreviewModal")?.classList.add("hidden"));
+    $("caseSpinClose")?.addEventListener("click", ()=>$("caseSpinModal")?.classList.add("hidden"));
+    $("openSpinModalBtn")?.addEventListener("click", ()=>{
+      if(!state.currentCase){
+        openResultOverlay({
+          badge:"Сначала выбор",
+          title:"Кейс не выбран",
+          text:"Выберите любой кейс сверху и подтвердите выбор.",
+          primary:"Понятно"
+        });
+        return;
+      }
+      $("caseSpinModal")?.classList.remove("hidden");
+    });
+
     $("navRoulette")?.addEventListener("click", ()=>{
       localStorage.setItem("tab","roulette");
       showScreen("roulette");
@@ -324,7 +474,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       loadHistory().catch(()=>{});
     });
 
-    // Deposit modal
     $("depositBtn")?.addEventListener("click", ()=>{
       $("depositAmount").value = "";
       openModal("depositModal");
@@ -337,7 +486,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       await doDeposit(v).catch(e=>setMsg(e.message));
     });
 
-    // Withdraw modal
     $("withdrawBtn")?.addEventListener("click", ()=>{
       $("withdrawAmount").value = "";
       openModal("withdrawModal");
@@ -350,12 +498,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       await doWithdraw(v).catch(e=>setMsg(e.message));
     });
 
-    // Spin & prizes
     $("spinBtn")?.addEventListener("click", ()=>doSpin());
     $("reqSneakers")?.addEventListener("click", ()=>reqPrize("sneakers").catch(e=>setMsg(e.message)));
     $("reqBracelet")?.addEventListener("click", ()=>reqPrize("bracelet").catch(e=>setMsg(e.message)));
 
-    // Copy ref
     $("copyRef")?.addEventListener("click", async ()=>{
       const v=$("refLink")?.value || "";
       if(!v || v==="—") return;

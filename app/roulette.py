@@ -1,63 +1,16 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import Session
 
-from app.models import User, Transaction, TxType, PrizeConfig
 from app.config import settings
-
-# Пытаемся взять наборы рулеток из roulette_sets.py
-try:
-    from app.roulette_sets import ROULETTES  # dict: roulette_id -> config
-except Exception:
-    ROULETTES = {}
+from app.models import CaseConfig, Transaction, TxType, User
+from app.roulette_sets import DEFAULT_CASES
 
 
-def _choose_prize(prizes: list[dict]) -> dict:
-    """
-    prizes: [{ "code": "...", "title": "...", "type": "ticket|stars|discount",
-               "amount": int, "weight": float/int, ... }]
-    """
-    weights = [float(p.get("weight", 1.0)) for p in prizes]
-    return random.choices(prizes, weights=weights, k=1)[0]
-
-
-def _default_roulette() -> dict:
-    # fallback если roulette_sets сломан/пустой
-    return {
-        "id": "r1",
-        "title": "Рулетка",
-        "spin_cost": settings.spin_cost,
-        "prizes": [
-            {"code": "ticket_sneakers", "title": "Кроссовки", "type": "ticket", "amount": 1, "weight": 20},
-            {"code": "ticket_bracelet", "title": "Браслет", "type": "ticket", "amount": 1, "weight": 25},
-            {"code": "discount_10", "title": "Скидка 10%", "type": "discount", "amount": 10, "weight": 20},
-            {"code": "discount_20", "title": "Скидка 20%", "type": "discount", "amount": 20, "weight": 15},
-            {"code": "stars_150", "title": "150 Stars", "type": "stars", "amount": 150, "weight": 12},
-            {"code": "stars_500", "title": "500 Stars", "type": "stars", "amount": 500, "weight": 6},
-            {"code": "stars_1000", "title": "1000 Stars", "type": "stars", "amount": 1000, "weight": 2},
-        ],
-    }
-
-
-def _get_roulette(roulette_id: str) -> dict:
-    if ROULETTES and roulette_id in ROULETTES:
-        r = dict(ROULETTES[roulette_id])
-        # поддержка если в конфиге нет spin_cost
-        r.setdefault("spin_cost", settings.spin_cost)
-        return r
-    # если id неизвестен — берём первую рулетку или дефолт
-    if ROULETTES:
-        first_key = next(iter(ROULETTES.keys()))
-        r = dict(ROULETTES[first_key])
-        r.setdefault("spin_cost", settings.spin_cost)
-        return r
-    return _default_roulette()
-
-
-def _tx(db: Session, user_id: int, ttype: str, amount: int, desc: str, meta: Optional[dict]=None) -> None:
+def _tx(db: Session, user_id: int, ttype: str, amount: int, desc: str, meta: Optional[dict] = None) -> None:
     try:
         tx_type = TxType(ttype)
     except Exception:
@@ -65,20 +18,112 @@ def _tx(db: Session, user_id: int, ttype: str, amount: int, desc: str, meta: Opt
     db.add(Transaction(user_id=user_id, type=tx_type, amount=amount, description=desc, meta=meta or {}))
 
 
+def _norm_prize(p: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "code": str(p.get("code") or "prize"),
+        "title": str(p.get("title") or p.get("code") or "Приз"),
+        "type": str(p.get("type") or "item"),
+        "amount": int(p.get("amount") or 0),
+        "weight": max(0, int(p.get("weight") or 0)),
+        "is_enabled": 1 if bool(p.get("is_enabled", True)) else 0,
+    }
+
+
+def _norm_case(c: dict[str, Any]) -> dict[str, Any]:
+    prizes = [_norm_prize(p) for p in (c.get("prizes") or [])]
+    return {
+        "id": str(c.get("id") or "r1"),
+        "title": str(c.get("title") or "Кейс"),
+        "spin_cost": max(1, int(c.get("spin_cost") or settings.spin_cost)),
+        "slots": max(1, int(c.get("slots") or sum(max(0, int(p.get("weight") or 0)) for p in prizes) or 20)),
+        "prizes": prizes,
+        "is_enabled": 1 if bool(c.get("is_enabled", True)) else 0,
+    }
+
+
+def ensure_case_configs(db: Session) -> None:
+    if db.query(CaseConfig).count() > 0:
+        return
+    for raw in DEFAULT_CASES:
+        c = _norm_case(raw)
+        db.add(
+            CaseConfig(
+                id=c["id"],
+                title=c["title"],
+                spin_cost=c["spin_cost"],
+                slots=c["slots"],
+                prizes=c["prizes"],
+                is_enabled=c["is_enabled"],
+            )
+        )
+    db.commit()
+
+
+def list_cases(db: Session) -> list[dict[str, Any]]:
+    ensure_case_configs(db)
+    rows = db.query(CaseConfig).order_by(CaseConfig.id.asc()).all()
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        out.append(
+            _norm_case(
+                {
+                    "id": r.id,
+                    "title": r.title,
+                    "spin_cost": r.spin_cost,
+                    "slots": r.slots,
+                    "prizes": r.prizes or [],
+                    "is_enabled": r.is_enabled,
+                }
+            )
+        )
+    return out
+
+
+def save_cases(db: Session, items: list[dict[str, Any]]) -> None:
+    if not items:
+        return
+
+    seen_ids: set[str] = set()
+    for raw in items:
+        c = _norm_case(raw)
+        cid = c["id"]
+        if not cid:
+            continue
+        seen_ids.add(cid)
+        row = db.query(CaseConfig).filter(CaseConfig.id == cid).first()
+        if not row:
+            row = CaseConfig(id=cid)
+            db.add(row)
+        row.title = c["title"]
+        row.spin_cost = c["spin_cost"]
+        row.slots = c["slots"]
+        row.prizes = c["prizes"]
+        row.is_enabled = c["is_enabled"]
+
+    for row in db.query(CaseConfig).all():
+        if row.id not in seen_ids:
+            db.delete(row)
+    db.commit()
+
+
+def _get_case(db: Session, roulette_id: str) -> dict[str, Any]:
+    cases = list_cases(db)
+    if not cases:
+        return _norm_case(DEFAULT_CASES[0])
+    by_id = {c["id"]: c for c in cases}
+    return by_id.get(roulette_id) or cases[0]
+
+
+def _choose_prize(prizes: list[dict[str, Any]]) -> dict[str, Any]:
+    enabled = [p for p in prizes if int(p.get("is_enabled") or 0) == 1 and int(p.get("weight") or 0) > 0]
+    if not enabled:
+        raise RuntimeError("No enabled prizes with positive weight")
+    weights = [float(p.get("weight", 1.0)) for p in enabled]
+    return random.choices(enabled, weights=weights, k=1)[0]
+
+
 def spin_once(db: Session, user: User, roulette_id: str) -> Dict[str, Any]:
-    """
-    Ожидается в app/main.py
-    Возвращает:
-      {
-        ok: bool,
-        roulette_id,
-        cost,
-        balance,
-        prize: {type, title, code, amount},
-        ui: { reel_label, win_text }
-      }
-    """
-    roulette = _get_roulette(roulette_id)
+    roulette = _get_case(db, roulette_id)
     cost = int(roulette.get("spin_cost") or settings.spin_cost)
 
     if user.balance < cost:
@@ -91,66 +136,29 @@ def spin_once(db: Session, user: User, roulette_id: str) -> Dict[str, Any]:
             "balance": user.balance,
         }
 
-    # списываем стоимость
     user.balance -= cost
-    _tx(db, user.user_id, "spin", -cost, f"Spin {roulette.get('title','Roulette')} ({roulette.get('id', roulette_id)})")
+    _tx(db, user.user_id, "spin", -cost, f"Spin {roulette.get('title', 'Case')} ({roulette.get('id', roulette_id)})")
 
-    # Apply admin-configurable weights / enabled flags (PrizeConfig)
-    cfg_rows = db.query(PrizeConfig).all()
-    cfg = {str(c.key.value if hasattr(c.key,'value') else c.key): c for c in cfg_rows}
-    prizes = list(roulette.get("prizes", [])) or _default_roulette()["prizes"]
-    filtered = []
-    for p in prizes:
-        code = str(p.get("code") or "")
-        c = cfg.get(code)
-        if c is not None and int(getattr(c, "is_enabled", 1)) == 0:
-            continue
-        pp = dict(p)
-        if c is not None:
-            pp["weight"] = int(getattr(c, "weight", pp.get("weight", 1)) or 0)
-        filtered.append(pp)
-    if filtered:
-        prizes = filtered
+    try:
+        prize = _choose_prize(list(roulette.get("prizes") or []))
+    except Exception:
+        return {"ok": False, "message": "В кейсе нет доступных призов"}
 
-    prize = _choose_prize(prizes)
-    p_type = prize.get("type")
+    p_type = str(prize.get("type") or "item")
+    p_title = str(prize.get("title") or "Приз")
+    p_code = str(prize.get("code") or "prize")
     p_amount = int(prize.get("amount", 0) or 0)
 
-    # логика выигрыша
-    win_text = ""
-    reel_label = prize.get("title", "Prize")
-
-    if p_type == "ticket":
-        code = prize.get("code", "")
-        if code == "ticket_sneakers":
-            user.tickets_sneakers = (user.tickets_sneakers or 0) + p_amount
-            # в выдаче пишем "тикет", а в ленте можно показывать "кроссы"
-            win_text = f"Вы выиграли тикет на 👟 кроссовки (+{p_amount})"
-            reel_label = "Кроссовки"
-            _tx(db, user.user_id, "win", 0, f"Win ticket_sneakers +{p_amount}")
-        elif code == "ticket_bracelet":
-            user.tickets_bracelet = (user.tickets_bracelet or 0) + p_amount
-            win_text = f"Вы выиграли тикет на 📿 браслет (+{p_amount})"
-            reel_label = "Браслет"
-            _tx(db, user.user_id, "win", 0, f"Win ticket_bracelet +{p_amount}")
-        else:
-            win_text = f"Вы выиграли тикет (+{p_amount})"
-            _tx(db, user.user_id, "win", 0, f"Win ticket {code} +{p_amount}")
-
-    elif p_type == "stars":
+    if p_type == "stars":
         user.balance += p_amount
         win_text = f"Вы выиграли ⭐ {p_amount} Stars"
-        _tx(db, user.user_id, "win", p_amount, f"Win stars +{p_amount}")
-
+        _tx(db, user.user_id, "win", p_amount, f"Win stars +{p_amount}", {"prize_code": p_code})
     elif p_type == "discount":
-        # скидку храним только в истории
-        percent = p_amount
-        win_text = f"Вы выиграли скидку 💸 {percent}%"
-        _tx(db, user.user_id, "win", 0, f"Win discount {percent}%")
-
+        win_text = f"Вы выиграли {p_title}"
+        _tx(db, user.user_id, "win", 0, f"Win discount {p_title}", {"prize_code": p_code, "percent": p_amount})
     else:
-        win_text = f"Вы выиграли {prize.get('title','приз')}"
-        _tx(db, user.user_id, "win", 0, f"Win {prize.get('title','prize')}")
+        win_text = f"Вы выиграли {p_title}"
+        _tx(db, user.user_id, "win", 0, f"Win item {p_title}", {"prize_code": p_code, "amount": p_amount})
 
     db.add(user)
     db.commit()
@@ -160,19 +168,19 @@ def spin_once(db: Session, user: User, roulette_id: str) -> Dict[str, Any]:
         "ok": True,
         "roulette_id": roulette.get("id", roulette_id),
         "cost": cost,
-        "balance": user.balance,
+        "balance": int(user.balance),
         "tickets": {
             "sneakers": int(user.tickets_sneakers or 0),
             "bracelet": int(user.tickets_bracelet or 0),
         },
         "prize": {
             "type": p_type,
-            "code": prize.get("code"),
-            "title": prize.get("title"),
+            "code": p_code,
+            "title": p_title,
             "amount": p_amount,
         },
         "ui": {
-            "reel_label": reel_label,
+            "reel_label": p_title,
             "win_text": win_text,
         },
     }

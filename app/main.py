@@ -20,8 +20,7 @@ from app.schemas import SpinIn, WithdrawIn, InvoiceIn
 from app.config import settings
 from app.telegram_session import get_tg_user_id
 
-from app.roulette_sets import ROULETTES
-from app.roulette import spin_once  # spin_once(db, user, roulette_id) -> dict
+from app.roulette import spin_once, ensure_case_configs, list_cases, save_cases  # spin_once(db, user, roulette_id) -> dict
 
 
 app = FastAPI()
@@ -29,6 +28,11 @@ app = FastAPI()
 @app.on_event("startup")
 def _startup():
     init_db()
+    db = SessionLocal()
+    try:
+        ensure_case_configs(db)
+    finally:
+        db.close()
 
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -129,9 +133,6 @@ def api_spin(payload: SpinIn, request: Request, db: Session = Depends(get_db)):
 
     u = ensure_user(db, uid)
     roulette_id = payload.roulette_id or "r1"
-
-    if roulette_id not in ROULETTES:
-        raise HTTPException(status_code=400, detail="Unknown roulette")
 
     result = spin_once(db, u, roulette_id)
     if not result.get("ok", False):
@@ -375,6 +376,24 @@ def api_internal_referral_bind(
 
 
 # ---------------- ADMIN API ----------------
+
+@app.get("/api/admin/cases")
+def admin_cases(request: Request, db: Session = Depends(get_db)):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+    return {"items": list_cases(db)}
+
+
+@app.put("/api/admin/cases")
+def admin_cases_put(payload: dict, request: Request, db: Session = Depends(get_db)):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+    items = payload.get("items") or []
+    if not isinstance(items, list):
+        raise HTTPException(status_code=400, detail="items must be list")
+    save_cases(db, items)
+    return {"ok": True}
+
 
 @app.get("/api/admin/prizes")
 def admin_prizes(request: Request, db: Session = Depends(get_db)):
