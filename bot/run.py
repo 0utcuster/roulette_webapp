@@ -79,16 +79,29 @@ async def on_success(m: Message):
     charge_id = sp.telegram_payment_charge_id
     total = sp.total_amount  # XTR units for Stars
 
-    async with httpx.AsyncClient(timeout=20) as client:
-        url = f"{settings.public_base_url.rstrip('/')}/api/internal/payment/confirm"
-        headers = {}
-        if getattr(settings, 'internal_api_token', ''):
-            headers['X-Internal-Token'] = settings.internal_api_token
-        await client.post(url, params={
-            "user_id": uid,
-            "telegram_payment_charge_id": charge_id,
-            "total_amount": total,
-        }, headers=headers)
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            url = f"{settings.public_base_url.rstrip('/')}/api/internal/payment/confirm"
+            headers = {}
+            if getattr(settings, "internal_api_token", ""):
+                headers["X-Internal-Token"] = settings.internal_api_token
+            r = await client.post(
+                url,
+                params={
+                    "user_id": uid,
+                    "telegram_payment_charge_id": charge_id,
+                    "total_amount": total,
+                },
+                headers=headers,
+            )
+            r.raise_for_status()
+            body = r.json()
+            if not bool(body.get("ok")):
+                raise RuntimeError(f"confirm failed: {body}")
+    except Exception as e:
+        print(f"[payment-confirm-error] uid={uid} charge_id={charge_id} err={e}")
+        await m.answer("⚠️ Оплата прошла, но зачисление задерживается. Напишите в поддержку и отправьте скриншот оплаты.")
+        return
 
     await m.answer(f"✅ Оплата прошла! Начислено: {total}⭐")
 

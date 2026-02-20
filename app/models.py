@@ -75,7 +75,7 @@ class Payment(Base):
     __tablename__ = "payments"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, index=True)
-    telegram_payment_charge_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    telegram_payment_charge_id: Mapped[str] = mapped_column(String(512), unique=True, index=True)
     total_amount: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 

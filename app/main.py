@@ -265,7 +265,7 @@ def api_prize_request(request: Request, payload: dict, db: Session = Depends(get
 @app.post("/api/internal/payment/confirm")
 def api_internal_payment_confirm(
     user_id: int = Query(...),
-    telegram_payment_charge_id: str = Query(..., min_length=1, max_length=128),
+    telegram_payment_charge_id: str = Query(..., min_length=1, max_length=512),
     total_amount: int = Query(..., ge=1),
     x_internal_token: Optional[str] = Header(default=None, alias="X-Internal-Token"),
     db: Session = Depends(get_db),
