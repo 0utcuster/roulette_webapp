@@ -379,14 +379,13 @@ async function animateToPrize(prizeKey, reelId="reelModal"){
   const targetEl = items[targetIndex];
   const targetCenter = targetEl.offsetTop + targetEl.offsetHeight / 2;
   const targetY = containerHeight / 2 - targetCenter;
-  const highTier = isHighTierPrize(prizeKey);
   const startY = 0;
   const distance = targetY - startY;
-  const duration = highTier ? 7400 : 7000;
+  const duration = 7000;
   const now = () => (window.performance?.now ? window.performance.now() : Date.now());
 
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
-  const easeOutQuint = (x) => 1 - Math.pow(1 - x, 5);
+  const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const wrap = reel.parentElement;
 
   reel.style.transform = `translateY(${startY}px)`;
@@ -400,15 +399,8 @@ async function animateToPrize(prizeKey, reelId="reelModal"){
       const ts = now();
       const p = clamp01((ts - t0) / duration);
 
-      // Single continuous curve: very fast at start, very slow at finish.
-      let y = startY + distance * easeOutQuint(p);
-
-      // Subtle continuous "flip" only for expensive drops (no step transitions).
-      if (highTier && p > 0.68) {
-        const k = (p - 0.68) / 0.32; // 0..1 on the final segment
-        const amp = 24 * (1 - k);    // damp to zero near finish
-        y += Math.sin(k * Math.PI * 2.35) * amp;
-      }
+      // Continuous acceleration and deceleration across full spin.
+      const y = startY + distance * easeInOutCubic(p);
 
       const dt = Math.max(1, ts - lastTs);
       const speed = Math.abs(y - lastY) / dt; // px per ms
