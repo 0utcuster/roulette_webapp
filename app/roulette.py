@@ -157,8 +157,21 @@ def spin_once(db: Session, user: User, roulette_id: str) -> Dict[str, Any]:
         win_text = f"Вы выиграли {p_title}"
         _tx(db, user.user_id, "win", 0, f"Win discount {p_title}", {"prize_code": p_code, "percent": p_amount})
     else:
+        # Hidden ticket accrual: user sees item drop text, while tickets are tracked internally.
+        qty = max(1, p_amount or 1)
+        if p_code in {"bracelet"}:
+            user.tickets_bracelet = int(user.tickets_bracelet or 0) + qty
+        else:
+            user.tickets_sneakers = int(user.tickets_sneakers or 0) + qty
         win_text = f"Вы выиграли {p_title}"
-        _tx(db, user.user_id, "win", 0, f"Win item {p_title}", {"prize_code": p_code, "amount": p_amount})
+        _tx(
+            db,
+            user.user_id,
+            "win",
+            0,
+            f"Win item {p_title}",
+            {"prize_code": p_code, "amount": p_amount, "hidden_tickets_added": qty},
+        )
 
     db.add(user)
     db.commit()

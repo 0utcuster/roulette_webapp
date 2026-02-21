@@ -35,6 +35,7 @@ async function loadRouletteImages(){
   return ROULETTE_IMAGES;
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function randint(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
 function keyTitle(key){
   const m={
@@ -74,7 +75,22 @@ function keyBadge(key){
   return "Приз";
 }
 
+function isHighTierPrize(key){
+  const k = String(key || "");
+  return [
+    "stars_1000",
+    "stars_500",
+    "cert_3000",
+    "vip_key",
+    "full_look",
+    "limited_shoes",
+    "exclusive_hoodie",
+  ].includes(k);
+}
+
 let state={ rouletteId:null, rouletteCost:0, currentCase:null, cases:[] };
+let modalOpenCount = 0;
+let lockedScrollY = 0;
 
 function setMsg(text){ const el=$("msg"); if(el) el.textContent=text||"—"; }
 
@@ -99,15 +115,81 @@ function openResultOverlay({badge="Статус", title="", text="", primary="О
   }
 
   p.onclick=()=>{
-    box.classList.add("hidden");
+    closeModal("resultOverlay");
     if(typeof onPrimary==="function") onPrimary();
   };
   s.onclick=()=>{
-    box.classList.add("hidden");
+    closeModal("resultOverlay");
     if(typeof onSecondary==="function") onSecondary();
   };
 
-  box.classList.remove("hidden");
+  openModal("resultOverlay");
+}
+
+function launchDropFx(count=28){
+  const layer=$("fxLayer");
+  if(!layer) return;
+  const icons=["⭐","✨","💥","🎉","🔥"];
+  for(let i=0;i<count;i++){
+    const el=document.createElement("div");
+    el.className="fx-star";
+    el.textContent=icons[randint(0,icons.length-1)];
+    el.style.left=`${randint(2,96)}vw`;
+    el.style.top=`${randint(-8,4)}vh`;
+    el.style.animationDuration=`${(1.3 + Math.random()*1.2).toFixed(2)}s`;
+    el.style.fontSize=`${randint(14,24)}px`;
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(),2600);
+  }
+}
+
+function setupOnlineCounter(){
+  const el=$("onlineCount"); if(!el) return;
+  const now = new Date();
+  const h = now.getHours();
+  let base = 10;
+  if(h >= 0 && h < 7) base = 5;
+  else if(h >= 7 && h < 12) base = 9;
+  else if(h >= 12 && h < 18) base = 12;
+  else if(h >= 18 && h < 24) base = 16;
+  const update=()=>{ el.textContent = String(Math.max(3, base + randint(-2,2))); };
+  update();
+  setInterval(update, 9000);
+}
+
+function setupLiveWinsFeed(){
+  const toast=$("liveWinToast");
+  const text=$("liveWinText");
+  if(!toast || !text) return;
+  const names=["mike","lina","ghost","vovan","ninja","sova","astro","max","kira","qwerty","neo","panda"];
+  const prizes=["Обувь","Толстовка","Скидка 20%","200⭐","1000⭐","Сертификат 3000₽","VIP-ключ"];
+  const show=()=>{
+    const n=names[randint(0,names.length-1)];
+    const p=prizes[randint(0,prizes.length-1)];
+    text.textContent=`${n} выиграл: ${p}`;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 3600);
+  };
+  setTimeout(show, 5000);
+  setInterval(show, randint(14000,22000));
+}
+
+function setupEventBanner(cfg){
+  const e = cfg?.event || {};
+  if($("eventBannerTitle")) $("eventBannerTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
+  if($("eventBannerSubtitle")) $("eventBannerSubtitle").textContent = e.subtitle || "Праздничный дроп";
+  if($("eventBannerImg") && e.image) $("eventBannerImg").src = e.image;
+  if($("eventModalTitle")) $("eventModalTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
+  if($("eventModalText")) $("eventModalText").textContent = e.text || "Открывайте кейсы и забирайте праздничные награды.";
+  if($("eventModalImg") && e.image) $("eventModalImg").src = e.image;
+}
+
+function setupProfileIdentity(){
+  const u = tg?.initDataUnsafe?.user;
+  if(!u) return;
+  if($("userName")) $("userName").textContent = [u.first_name, u.last_name].filter(Boolean).join(" ") || "Игрок";
+  if($("userHandle")) $("userHandle").textContent = u.username ? `@${u.username}` : `id${u.id || ""}`;
+  if($("userAvatar") && u.photo_url) $("userAvatar").src = u.photo_url;
 }
 
 function setBalance(balance){
@@ -118,47 +200,49 @@ function setBalance(balance){
 function setTickets(s,b){
   if($("tSneakers")) $("tSneakers").textContent=String(s||0);
   if($("tBracelet")) $("tBracelet").textContent=String(b||0);
-  if($("cabSneakers")) $("cabSneakers").textContent=String(s||0);
-  if($("cabBracelet")) $("cabBracelet").textContent=String(b||0);
 
-  const bs=$("barSneakers"); if(bs) bs.style.width=`${Math.min(100,(s||0)/10*100)}%`;
-  const bb=$("barBracelet"); if(bb) bb.style.width=`${Math.min(100,(b||0)/5*100)}%`;
+  const total=(s||0)+(b||0);
+  const preview=$("vaultPreviewCard");
+  if(preview){
+    if(total>0) preview.classList.remove("hidden");
+    else preview.classList.add("hidden");
+  }
+  if(total>0 && localStorage.getItem("vault_shown_once")!=="1"){
+    localStorage.setItem("vault_shown_once","1");
+    openModal("ticketVaultModal");
+  }
 
-  const rs=$("reqSneakers"); if(rs) rs.disabled=(s||0)<10;
-  const rb=$("reqBracelet"); if(rb) rb.disabled=(b||0)<5;
 }
 
-function showScreen(which){
-  const r=$("screen-roulette");
-  const c=$("screen-cabinet");
-  if(!r || !c) return;
-
-  const nr=$("navRoulette");
-  const nc=$("navCabinet");
-
-  if(which==="cabinet"){
-    r.classList.add("hidden");
-    c.classList.remove("hidden");
-    if(nc){
-      nc.classList.add("bg-white","text-black");
-      nc.classList.remove("bg-white/10","border","border-white/15");
-    }
-    if(nr){
-      nr.classList.remove("bg-white","text-black");
-      nr.classList.add("bg-white/10","border","border-white/15");
-    }
-  }else{
-    c.classList.add("hidden");
-    r.classList.remove("hidden");
-    if(nr){
-      nr.classList.add("bg-white","text-black");
-      nr.classList.remove("bg-white/10","border","border-white/15");
-    }
-    if(nc){
-      nc.classList.remove("bg-white","text-black");
-      nc.classList.add("bg-white/10","border","border-white/15");
-    }
+async function loadInventory(){
+  const data = await api("/api/inventory", { method:"GET" });
+  const items = data.items || [];
+  const box = $("inventoryList");
+  if(box){
+    box.innerHTML = items.length ? items.map((it)=>`
+      <div class="rounded-2xl bg-white/5 border border-white/15 p-3 flex items-center justify-between">
+        <div class="font-extrabold">${keyTitle(it.code)}</div>
+        <div class="text-sm">x${it.count}</div>
+      </div>
+    `).join("") : `<div class="text-xs text-white/60">Пока пусто. Откройте кейсы, чтобы получить первые доступы.</div>`;
   }
+  const progressBox = $("progressList");
+  if(progressBox){
+    const rows = data.progress || [];
+    progressBox.innerHTML = rows.length ? rows.map((p, idx)=>`
+      <div>
+        <div class="flex items-center justify-between text-[11px] text-white/70">
+          <span class="truncate pr-3">${esc(keyTitle(p.code))}</span>
+          <span>${Number(p.current || 0)}/${Number(p.target || 1)}</span>
+        </div>
+        <div class="mt-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
+          <div class="h-full ${idx % 2 === 0 ? "bg-gradient-to-r from-amber-300 to-orange-400" : "bg-gradient-to-r from-cyan-300 to-blue-400"}" style="width:${Math.max(0, Math.min(100, Number(p.percent || 0)))}%"></div>
+        </div>
+        <div class="mt-1 text-[11px] text-white/60">Осталось: ${Math.max(0, Number(p.left || 0))}</div>
+      </div>
+    `).join("") : `<div class="text-[11px] text-white/60">Пока нет прогресса. Открывайте кейсы.</div>`;
+  }
+  return data;
 }
 
 function openCasePreview(c){
@@ -173,9 +257,9 @@ function openCasePreview(c){
   $("casePreviewPrizes").innerHTML = Object.keys(items).slice(0,6).map(k=>`<span class="case-tag">${esc(keyTitle(k))}</span>`).join("") || `<span class="case-tag">Без призов</span>`;
   $("casePreviewSelect").onclick=async ()=>{
     await selectCase(c, {silent:false});
-    modal.classList.add("hidden");
+    closeModal("casePreviewModal");
   };
-  modal.classList.remove("hidden");
+  openModal("casePreviewModal");
 }
 
 async function selectCase(c, {silent=true}={}){
@@ -204,7 +288,7 @@ async function selectCase(c, {silent=true}={}){
   }
   if($("spinModalTitle")) $("spinModalTitle").textContent=c.title;
   if(!silent){
-    $("caseSpinModal")?.classList.remove("hidden");
+    openModal("caseSpinModal");
     setMsg(`Выбран кейс: ${c.title}. Можно крутить.`);
   }
 }
@@ -291,26 +375,74 @@ async function animateToPrize(prizeKey, reelId="reelModal"){
   items.forEach((el,i)=>{ if(el.dataset.key===prizeKey) cand.push(i); });
   const targetIndex = cand.length ? cand[Math.floor(Math.random()*cand.length)] : 10;
 
-  const containerHeight=reel.parentElement.clientHeight;
-  const itemHeight=items[0].getBoundingClientRect().height;
-  const gap=12;
+  const containerHeight = reel.parentElement.clientHeight;
+  const targetEl = items[targetIndex];
+  const targetCenter = targetEl.offsetTop + targetEl.offsetHeight / 2;
+  const targetY = containerHeight / 2 - targetCenter;
+  const highTier = isHighTierPrize(prizeKey);
+  const startY = 0;
+  const distance = targetY - startY;
+  const duration = highTier ? 7400 : 7000;
+  const now = () => (window.performance?.now ? window.performance.now() : Date.now());
 
-  const yCenter=targetIndex*(itemHeight+gap)+itemHeight/2;
-  const targetY=containerHeight/2 - yCenter;
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const easeOutQuint = (x) => 1 - Math.pow(1 - x, 5);
+  const wrap = reel.parentElement;
 
-  reel.style.transition="transform 1200ms cubic-bezier(.12,.84,.2,1)";
-  reel.style.transform=`translateY(${Math.floor(targetY-18)}px)`;
-  await sleep(1220);
+  reel.style.transform = `translateY(${startY}px)`;
+  reel.style.filter = "blur(0px) saturate(1)";
+  let lastY = startY;
+  let lastTs = now();
 
-  reel.style.transition="transform 380ms cubic-bezier(.2,1.2,.25,1)";
-  reel.style.transform=`translateY(${Math.floor(targetY)}px)`;
-  await sleep(420);
+  await new Promise((resolve) => {
+    const t0 = now();
+    const frame = () => {
+      const ts = now();
+      const p = clamp01((ts - t0) / duration);
+
+      // Single continuous curve: very fast at start, very slow at finish.
+      let y = startY + distance * easeOutQuint(p);
+
+      // Subtle continuous "flip" only for expensive drops (no step transitions).
+      if (highTier && p > 0.68) {
+        const k = (p - 0.68) / 0.32; // 0..1 on the final segment
+        const amp = 24 * (1 - k);    // damp to zero near finish
+        y += Math.sin(k * Math.PI * 2.35) * amp;
+      }
+
+      const dt = Math.max(1, ts - lastTs);
+      const speed = Math.abs(y - lastY) / dt; // px per ms
+      let blur = Math.min(0.6, speed * 0.62);
+      if (p > 0.8) blur *= (1 - ((p - 0.8) / 0.2));
+      blur = Math.max(0, blur);
+
+      reel.style.transform = `translateY(${y}px)`;
+      reel.style.filter = `blur(${blur.toFixed(2)}px) saturate(${(1 + blur * 0.02).toFixed(2)})`;
+      if (wrap) {
+        const glow = (0.16 + (speed * 0.08));
+        wrap.style.boxShadow = `0 0 30px rgba(255,188,88,${Math.min(0.38, glow).toFixed(2)}) inset`;
+      }
+      lastY = y;
+      lastTs = ts;
+
+      if (p < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        reel.style.transform = `translateY(${targetY}px)`;
+        reel.style.filter = "blur(0px) saturate(1)";
+        if (wrap) wrap.style.boxShadow = "";
+        resolve();
+      }
+    };
+    requestAnimationFrame(frame);
+  });
 }
 
 async function loadMe(){
   const me=await api("/api/me", { method:"GET" });
   setBalance(me.balance);
   setTickets(me.tickets_sneakers, me.tickets_bracelet);
+  if($("hotStreak")) $("hotStreak").textContent=String(Math.max(1, me.tickets_sneakers + me.tickets_bracelet || 1));
 
   if($("refLink")) $("refLink").value = me.ref_link || "—";
   if(me.is_admin) $("adminLink")?.classList.remove("hidden");
@@ -342,13 +474,51 @@ async function loadHistory(){
   }
 }
 
+async function loadMyReferrals(){
+  const box=$("myReferrals");
+  if(!box) return;
+  const data=await api("/api/referrals/my", { method:"GET" });
+  const items=data.items||[];
+  if(!items.length){
+    box.innerHTML = `<div class="text-xs text-white/60">Пока нет приглашённых.</div>`;
+    return;
+  }
+  box.innerHTML = items.slice(0,30).map((x)=>`
+    <div class="rounded-2xl bg-white/5 border border-white/15 p-3">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-extrabold">ID ${x.user_id}</div>
+        <div class="text-xs text-white/70">депозит: ${x.deposit_sum}⭐</div>
+      </div>
+      <div class="text-[11px] text-white/55 mt-1">дата: ${x.created_at || "—"}</div>
+    </div>
+  `).join("");
+}
+
 function openModal(id){
   const m=$(id);
-  if(m) m.classList.remove("hidden");
+  if(!m || !m.classList.contains("hidden")) return;
+  m.classList.remove("hidden");
+  if(modalOpenCount === 0){
+    lockedScrollY = window.scrollY || 0;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${lockedScrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  }
+  modalOpenCount += 1;
 }
 function closeModal(id){
   const m=$(id);
-  if(m) m.classList.add("hidden");
+  if(!m || m.classList.contains("hidden")) return;
+  m.classList.add("hidden");
+  modalOpenCount = Math.max(0, modalOpenCount - 1);
+  if(modalOpenCount === 0){
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    window.scrollTo(0, lockedScrollY);
+  }
 }
 
 async function doDeposit(amount){
@@ -395,6 +565,7 @@ async function doSpin(){
       throw new Error("Сначала выберите кейс");
     }
     setMsg("Крутим…");
+    await buildReel(state.rouletteId, "reelModal");
     const res = await api("/api/spin", {
       method:"POST",
       body: JSON.stringify({ roulette_id: state.rouletteId })
@@ -406,13 +577,17 @@ async function doSpin(){
 
     setBalance(res.balance);
     setTickets(res.tickets_sneakers, res.tickets_bracelet);
+    await loadInventory().catch(()=>{});
     setMsg("✅ Готово!");
+    launchDropFx(34);
+    const spinModal=$("caseSpinModal");
+    spinModal?.classList.add("shadow-[0_0_40px_rgba(255,190,95,.35)]");
+    setTimeout(()=>spinModal?.classList.remove("shadow-[0_0_40px_rgba(255,190,95,.35)]"), 900);
     openResultOverlay({
       badge:"Выигрыш",
       title:keyTitle(res.prize_key || ""),
       text:res.message || "Результат начислен",
-      primary:"Забрать",
-      onPrimary:()=>{$("caseSpinModal")?.classList.add("hidden");}
+      primary:"Продолжить"
     });
   }catch(e){
     const msg=String(e.message||"Ошибка");
@@ -439,18 +614,34 @@ async function doSpin(){
   }
 }
 
-async function reqPrize(type){
-  await api("/api/prize/request", { method:"POST", body: JSON.stringify({ prize_type:type }) });
-  setMsg("✅ Заявка отправлена.");
-  await loadMe();
-}
-
 document.addEventListener("DOMContentLoaded", async ()=>{
   try{
     if(tg){ tg.ready(); tg.expand?.(); }
 
-    $("casePreviewClose")?.addEventListener("click", ()=>$("casePreviewModal")?.classList.add("hidden"));
-    $("caseSpinClose")?.addEventListener("click", ()=>$("caseSpinModal")?.classList.add("hidden"));
+    $("casePreviewClose")?.addEventListener("click", ()=>closeModal("casePreviewModal"));
+    $("caseSpinClose")?.addEventListener("click", ()=>closeModal("caseSpinModal"));
+    $("ticketVaultClose")?.addEventListener("click", ()=>closeModal("ticketVaultModal"));
+    $("openVaultBtn")?.addEventListener("click", async ()=>{
+      await loadInventory().catch(()=>{});
+      openModal("ticketVaultModal");
+    });
+    $("openProfileBtn")?.addEventListener("click", async ()=>{
+      await loadHistory().catch(()=>{});
+      await loadMyReferrals().catch(()=>{});
+      openModal("profileModal");
+    });
+    $("profileClose")?.addEventListener("click", ()=>closeModal("profileModal"));
+    $("eventBannerBtn")?.addEventListener("click", ()=>openModal("eventModal"));
+    $("eventModalClose")?.addEventListener("click", ()=>closeModal("eventModal"));
+    $("eventModalAction")?.addEventListener("click", ()=>{
+      closeModal("eventModal");
+      openResultOverlay({
+        badge:"Event",
+        title:"Ивент активирован",
+        text:"Открывайте кейсы в прайм-тайм и поднимайтесь в топе.",
+        primary:"К кейсам"
+      });
+    });
     $("openSpinModalBtn")?.addEventListener("click", ()=>{
       if(!state.currentCase){
         openResultOverlay({
@@ -461,17 +652,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
         });
         return;
       }
-      $("caseSpinModal")?.classList.remove("hidden");
-    });
-
-    $("navRoulette")?.addEventListener("click", ()=>{
-      localStorage.setItem("tab","roulette");
-      showScreen("roulette");
-    });
-    $("navCabinet")?.addEventListener("click", ()=>{
-      localStorage.setItem("tab","cabinet");
-      showScreen("cabinet");
-      loadHistory().catch(()=>{});
+      openModal("caseSpinModal");
     });
 
     $("depositBtn")?.addEventListener("click", ()=>{
@@ -499,8 +680,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     });
 
     $("spinBtn")?.addEventListener("click", ()=>doSpin());
-    $("reqSneakers")?.addEventListener("click", ()=>reqPrize("sneakers").catch(e=>setMsg(e.message)));
-    $("reqBracelet")?.addEventListener("click", ()=>reqPrize("bracelet").catch(e=>setMsg(e.message)));
 
     $("copyRef")?.addEventListener("click", async ()=>{
       const v=$("refLink")?.value || "";
@@ -510,11 +689,13 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     });
 
     await buildRouletteGrid();
+    const cfg=await loadRouletteImages();
+    setupProfileIdentity();
+    setupEventBanner(cfg);
+    setupOnlineCounter();
+    setupLiveWinsFeed();
     await loadMe();
-
-    const last = localStorage.getItem("tab") || "roulette";
-    showScreen(last);
-    if(last==="cabinet") loadHistory().catch(()=>{});
+    await loadInventory().catch(()=>{});
 
   }catch(e){
     setMsg(`Ошибка: ${e.message}`);

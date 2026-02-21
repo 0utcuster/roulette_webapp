@@ -140,6 +140,178 @@ function renderCaseEditor(c) {
 }
 
 let CASES = [];
+let MEDIA_CONFIG = { event: {}, roulettes: {}, ticket_targets: {} };
+
+function ensureMediaShape() {
+  if (!MEDIA_CONFIG || typeof MEDIA_CONFIG !== "object") MEDIA_CONFIG = {};
+  if (!MEDIA_CONFIG.event || typeof MEDIA_CONFIG.event !== "object") MEDIA_CONFIG.event = {};
+  if (!MEDIA_CONFIG.roulettes || typeof MEDIA_CONFIG.roulettes !== "object") MEDIA_CONFIG.roulettes = {};
+  if (!MEDIA_CONFIG.ticket_targets || typeof MEDIA_CONFIG.ticket_targets !== "object") MEDIA_CONFIG.ticket_targets = {};
+}
+
+function collectItemCodesFromCases() {
+  const set = new Set();
+  for (const c of CASES || []) {
+    for (const p of c.prizes || []) {
+      if ((p.type || "") === "item" && (p.code || "").trim()) set.add(p.code.trim());
+    }
+  }
+  return Array.from(set);
+}
+
+async function uploadImage(file) {
+  if (!file) throw new Error("Файл не выбран");
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/api/admin/upload_image", {
+    method: "POST",
+    headers: { ...initDataHeader() },
+    body: fd,
+  });
+  const txt = await res.text();
+  let data = null;
+  try { data = txt ? JSON.parse(txt) : null; } catch { data = { raw: txt }; }
+  if (!res.ok) throw new Error(data?.detail || "Ошибка загрузки");
+  return data.url;
+}
+
+function renderTicketTargetsRows() {
+  const box = $("ticketTargetsRows");
+  if (!box) return;
+  const codes = Array.from(new Set([...(collectItemCodesFromCases()), ...Object.keys(MEDIA_CONFIG.ticket_targets || {})])).sort();
+  box.innerHTML = codes.length ? codes.map((code) => `
+    <div class="grid grid-cols-[1fr_110px] gap-2 items-center">
+      <div class="text-sm font-extrabold">${esc(code)}</div>
+      <input data-target-code="${esc(code)}" type="number" min="1" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-sm" value="${Number(MEDIA_CONFIG.ticket_targets?.[code] || (code === "shoes" ? 10 : 5))}" />
+    </div>
+  `).join("") : `<div class="text-xs text-white/60">Нет item-кодов в кейсах.</div>`;
+}
+
+function renderMediaRows() {
+  const box = $("mediaPrizeRows");
+  if (!box) return;
+  const rows = [];
+  for (const [rid, r] of Object.entries(MEDIA_CONFIG.roulettes || {})) {
+    if (!r || typeof r !== "object") continue;
+    rows.push({
+      label: `${rid} · avatar`,
+      bind: `avatar|${rid}`,
+      url: String(r.avatar || ""),
+    });
+    const items = r.items || {};
+    for (const [code, arr] of Object.entries(items)) {
+      const img = Array.isArray(arr) && arr.length ? String(arr[0]) : "";
+      rows.push({
+        label: `${rid} · ${code}`,
+        bind: `item|${rid}|${code}`,
+        url: img,
+      });
+    }
+  }
+  box.innerHTML = rows.map((row) => `
+    <div class="rounded-2xl border border-white/10 bg-black/20 p-2">
+      <div class="text-xs text-white/70 mb-2">${esc(row.label)}</div>
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 items-center">
+        <input data-media-bind="${esc(row.bind)}" class="rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-xs w-full" value="${esc(row.url)}" />
+        <input data-media-file="${esc(row.bind)}" type="file" accept="image/*" class="text-xs" />
+        <button data-media-upload="${esc(row.bind)}" class="rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs font-extrabold">Загрузить</button>
+      </div>
+      <img data-media-preview="${esc(row.bind)}" src="${esc(row.url)}" class="mt-2 w-full h-20 object-cover rounded-xl border border-white/10 bg-black/20" />
+    </div>
+  `).join("");
+
+  Array.from(document.querySelectorAll("[data-media-upload]")).forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const bind = btn.dataset.mediaUpload;
+      const fileInput = document.querySelector(`[data-media-file="${CSS.escape(bind)}"]`);
+      const urlInput = document.querySelector(`[data-media-bind="${CSS.escape(bind)}"]`);
+      const preview = document.querySelector(`[data-media-preview="${CSS.escape(bind)}"]`);
+      try {
+        const file = fileInput?.files?.[0];
+        const url = await uploadImage(file);
+        if (urlInput) urlInput.value = url;
+        if (preview) preview.src = url;
+        setMsg("Картинка загружена. Нажмите «Сохранить».");
+      } catch (e) {
+        setMsg(e.message || "Ошибка загрузки");
+      }
+    });
+  });
+}
+
+function renderMediaEditor() {
+  ensureMediaShape();
+  $("eventTitle").value = MEDIA_CONFIG.event.title || "";
+  $("eventSubtitle").value = MEDIA_CONFIG.event.subtitle || "";
+  $("eventText").value = MEDIA_CONFIG.event.text || "";
+  $("eventImage").value = MEDIA_CONFIG.event.image || "";
+  $("eventImagePreview").src = MEDIA_CONFIG.event.image || "";
+
+  if ($("eventImage")) $("eventImage").oninput = () => {
+    $("eventImagePreview").src = $("eventImage").value || "";
+  };
+
+  if ($("uploadEventImage")) $("uploadEventImage").onclick = async () => {
+    try {
+      const file = $("eventImageFile")?.files?.[0];
+      const url = await uploadImage(file);
+      $("eventImage").value = url;
+      $("eventImagePreview").src = url;
+      setMsg("Картинка баннера загружена. Нажмите «Сохранить».");
+    } catch (e) {
+      setMsg(e.message || "Ошибка загрузки");
+    }
+  };
+
+  renderTicketTargetsRows();
+  renderMediaRows();
+}
+
+async function loadMediaConfig() {
+  MEDIA_CONFIG = await api("/api/admin/media_config", { method: "GET" });
+  ensureMediaShape();
+  renderMediaEditor();
+}
+
+async function saveMediaConfig() {
+  ensureMediaShape();
+  MEDIA_CONFIG.event.title = ($("eventTitle")?.value || "").trim();
+  MEDIA_CONFIG.event.subtitle = ($("eventSubtitle")?.value || "").trim();
+  MEDIA_CONFIG.event.text = ($("eventText")?.value || "").trim();
+  MEDIA_CONFIG.event.image = ($("eventImage")?.value || "").trim();
+
+  const targets = {};
+  Array.from(document.querySelectorAll("[data-target-code]")).forEach((el) => {
+    const code = String(el.dataset.targetCode || "").trim();
+    if (!code) return;
+    const v = Math.max(1, parseInt(el.value || "1", 10) || 1);
+    targets[code] = v;
+  });
+  MEDIA_CONFIG.ticket_targets = targets;
+
+  Array.from(document.querySelectorAll("[data-media-bind]")).forEach((el) => {
+    const bind = String(el.dataset.mediaBind || "");
+    const parts = bind.split("|");
+    const url = (el.value || "").trim();
+    if (parts[0] === "avatar" && parts[1]) {
+      const rid = parts[1];
+      MEDIA_CONFIG.roulettes[rid] = MEDIA_CONFIG.roulettes[rid] || {};
+      MEDIA_CONFIG.roulettes[rid].avatar = url;
+    }
+    if (parts[0] === "item" && parts[1] && parts[2]) {
+      const rid = parts[1];
+      const code = parts[2];
+      MEDIA_CONFIG.roulettes[rid] = MEDIA_CONFIG.roulettes[rid] || {};
+      MEDIA_CONFIG.roulettes[rid].items = MEDIA_CONFIG.roulettes[rid].items || {};
+      const cur = MEDIA_CONFIG.roulettes[rid].items[code];
+      if (Array.isArray(cur) && cur.length) MEDIA_CONFIG.roulettes[rid].items[code][0] = url;
+      else MEDIA_CONFIG.roulettes[rid].items[code] = [url];
+    }
+  });
+
+  await api("/api/admin/media_config", { method: "PUT", body: JSON.stringify(MEDIA_CONFIG) });
+  setMsg("Медиа-конфиг сохранён ✅");
+}
 
 function bindCaseEditorActions() {
   Array.from(document.querySelectorAll("[data-add-prize]")).forEach((btn) => {
@@ -211,6 +383,7 @@ async function saveCases() {
 
 async function loadAll() {
   await loadCases();
+  await loadMediaConfig();
   const wds = await api("/api/admin/withdraws");
   $("withdraws").innerHTML = wds.items.map((x) => `
     <div class="rounded-2xl bg-white/5 border border-white/15 p-3 text-sm">
@@ -245,6 +418,8 @@ async function applyAdjust() {
 document.addEventListener("DOMContentLoaded", () => {
   $("loadAll").addEventListener("click", () => loadAll().then(() => setMsg("Загружено")).catch((e) => setMsg(e.message || "Ошибка")));
   $("saveCases").addEventListener("click", () => saveCases().catch((e) => setMsg(e.message || "Ошибка")));
+  $("loadMediaConfig")?.addEventListener("click", () => loadMediaConfig().then(() => setMsg("JSON обновлён")).catch((e) => setMsg(e.message || "Ошибка")));
+  $("saveMediaConfig")?.addEventListener("click", () => saveMediaConfig().catch((e) => setMsg(e.message || "Ошибка")));
   $("apply").addEventListener("click", () => applyAdjust().catch((e) => setMsg(e.message || "Ошибка")));
 
   $("loadRefs")?.addEventListener("click", () => loadReferrals().then(() => setMsg("Рефералы обновлены")).catch((e) => setMsg(e.message || "Ошибка")));

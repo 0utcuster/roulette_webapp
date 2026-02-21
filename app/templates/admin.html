@@ -56,6 +56,41 @@
       </div>
 
       <div class="card rounded-3xl p-4">
+        <div class="font-extrabold">Медиа и ивент</div>
+        <div class="text-xs text-white/70 mt-1">Загрузка фото для баннера и конкретных призов, плюс редактирование текста ивента.</div>
+
+        <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3 space-y-2">
+          <div class="text-xs text-white/70">Баннер ивента</div>
+          <input id="eventTitle" class="rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-sm w-full" placeholder="Заголовок"/>
+          <input id="eventSubtitle" class="rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-sm w-full" placeholder="Подзаголовок"/>
+          <textarea id="eventText" class="rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-sm w-full h-24" placeholder="Текст ивента"></textarea>
+          <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-center">
+            <input id="eventImage" class="rounded-xl bg-black/20 border border-white/10 px-3 py-2 text-xs w-full" placeholder="URL картинки"/>
+            <div class="flex gap-2">
+              <input id="eventImageFile" type="file" accept="image/*" class="text-xs"/>
+              <button id="uploadEventImage" class="rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs font-extrabold">Загрузить</button>
+            </div>
+          </div>
+          <img id="eventImagePreview" class="w-full h-28 object-cover rounded-xl border border-white/10 bg-black/20" />
+        </div>
+
+        <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3">
+          <div class="text-xs text-white/70">Цели прогресса (ticket targets)</div>
+          <div id="ticketTargetsRows" class="mt-2 space-y-2"></div>
+        </div>
+
+        <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3">
+          <div class="text-xs text-white/70">Фото призов и аватаров кейсов</div>
+          <div id="mediaPrizeRows" class="mt-2 space-y-2 max-h-96 overflow-auto"></div>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <button id="loadMediaConfig" class="rounded-2xl bg-white/10 border border-white/15 px-4 py-3 font-extrabold">Обновить</button>
+          <button id="saveMediaConfig" class="rounded-2xl bg-white text-black px-4 py-3 font-extrabold">Сохранить</button>
+        </div>
+      </div>
+
+      <div class="card rounded-3xl p-4">
         <div class="font-extrabold">Выводы</div>
         <div class="mt-3 space-y-2 max-h-72 overflow-auto" id="withdraws"></div>
       </div>

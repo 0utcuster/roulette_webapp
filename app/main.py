@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
+import re
 from datetime import datetime, date
+from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
-from fastapi import FastAPI, Request, Depends, HTTPException, Query, Header
+from fastapi import FastAPI, Request, Depends, HTTPException, Query, Header, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -37,6 +41,8 @@ def _startup():
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+MEDIA_CONFIG_PATH = Path("app/static/prizes/roulettes.json")
+UPLOADS_DIR = Path("app/static/uploads")
 
 
 def get_db():
@@ -88,6 +94,46 @@ def is_admin(user_id: int | None) -> bool:
 def require_admin(uid: int | None):
     if not is_admin(uid):
         raise HTTPException(status_code=403, detail="Forbidden")
+
+
+def load_media_config() -> dict:
+    if not MEDIA_CONFIG_PATH.exists():
+        return {"event": {}, "roulettes": {}}
+    with MEDIA_CONFIG_PATH.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        return {"event": {}, "roulettes": {}}
+    data.setdefault("event", {})
+    data.setdefault("roulettes", {})
+    return data
+
+
+def save_media_config(payload: dict) -> None:
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="payload must be object")
+    payload.setdefault("event", {})
+    payload.setdefault("roulettes", {})
+    MEDIA_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with MEDIA_CONFIG_PATH.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def _human_code_title(code: str) -> str:
+    mapping = {
+        "shoes": "Обувь",
+        "women_shoes": "Женская обувь",
+        "limited_shoes": "Лимит обувь",
+        "hoodie": "Толстовка",
+        "women_hoodie": "Женская толстовка",
+        "exclusive_hoodie": "Эксклюзив худи",
+        "tshirt": "Футболка",
+        "jeans": "Джинсы",
+        "bracelet": "Браслет",
+        "cert_3000": "Сертификат 3000₽",
+        "full_look": "Полный образ",
+        "vip_key": "VIP-ключ",
+    }
+    return mapping.get(code, code.replace("_", " ").strip() or "Приз")
 
 
 # ---------------- PUBLIC PAGES ----------------
@@ -224,6 +270,118 @@ def api_history(request: Request, db: Session = Depends(get_db)):
             }
             for t in rows
         ]
+    }
+
+
+@app.get("/api/inventory")
+def api_inventory(request: Request, db: Session = Depends(get_db)):
+    uid = get_tg_user_id(request)
+    if not uid:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    rows = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == uid, Transaction.type == TxType.win)
+        .order_by(Transaction.id.desc())
+        .limit(5000)
+        .all()
+    )
+
+    items: dict[str, int] = {}
+    for t in rows:
+        meta = t.meta or {}
+        code = str(meta.get("prize_code") or "")
+        added = int(meta.get("hidden_tickets_added") or 0)
+        if code and added > 0:
+            items[code] = int(items.get(code, 0)) + added
+
+    media = load_media_config()
+    raw_targets = media.get("ticket_targets") or {}
+    if not isinstance(raw_targets, dict):
+        raw_targets = {}
+
+    item_codes: set[str] = set()
+    for c in list_cases(db):
+        for p in (c.get("prizes") or []):
+            if str(p.get("type") or "") == "item":
+                item_codes.add(str(p.get("code") or ""))
+    item_codes = {x for x in item_codes if x}
+    item_codes.update(items.keys())
+    item_codes.update(raw_targets.keys())
+
+    image_map: dict[str, str] = {}
+    for rid, r in (media.get("roulettes") or {}).items():
+        if not isinstance(r, dict):
+            continue
+        items_map = r.get("items") or {}
+        if not isinstance(items_map, dict):
+            continue
+        for code, arr in items_map.items():
+            if isinstance(arr, list) and arr:
+                image_map[str(code)] = str(arr[0])
+
+    progress = []
+    for code in sorted(item_codes):
+        target_default = 10 if code in {"shoes"} else 5
+        target = max(1, int(raw_targets.get(code) or target_default))
+        now = int(items.get(code, 0))
+        progress.append(
+            {
+                "code": code,
+                "title": _human_code_title(code),
+                "current": now,
+                "target": target,
+                "left": max(0, target - now),
+                "percent": min(100, int((now / target) * 100)),
+                "image": image_map.get(code) or "",
+            }
+        )
+
+    return {
+        "items": [{"code": k, "count": int(v)} for k, v in sorted(items.items(), key=lambda kv: kv[0])],
+        "total": int(sum(items.values())),
+        "progress": progress,
+    }
+
+
+@app.get("/api/referrals/my")
+def api_referrals_my(request: Request, db: Session = Depends(get_db)):
+    uid = get_tg_user_id(request)
+    if not uid:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    invitees = (
+        db.query(User)
+        .filter(User.referrer_id == int(uid))
+        .order_by(User.created_at.desc())
+        .limit(300)
+        .all()
+    )
+    if not invitees:
+        return {"items": [], "count": 0}
+
+    ids = [int(u.user_id) for u in invitees]
+    dep_rows = (
+        db.query(
+            Transaction.user_id,
+            func.coalesce(func.sum(Transaction.amount), 0).label("deposit_sum"),
+        )
+        .filter(Transaction.type == TxType.deposit, Transaction.user_id.in_(ids))
+        .group_by(Transaction.user_id)
+        .all()
+    )
+    dep_map = {int(r.user_id): int(r.deposit_sum) for r in dep_rows}
+
+    return {
+        "count": len(invitees),
+        "items": [
+            {
+                "user_id": int(u.user_id),
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "deposit_sum": int(dep_map.get(int(u.user_id), 0)),
+            }
+            for u in invitees
+        ],
     }
 
 
@@ -393,6 +551,46 @@ def admin_cases_put(payload: dict, request: Request, db: Session = Depends(get_d
         raise HTTPException(status_code=400, detail="items must be list")
     save_cases(db, items)
     return {"ok": True}
+
+
+@app.get("/api/admin/media_config")
+def admin_media_config(request: Request):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+    return load_media_config()
+
+
+@app.put("/api/admin/media_config")
+def admin_media_config_put(payload: dict, request: Request):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+    save_media_config(payload)
+    return {"ok": True}
+
+
+@app.post("/api/admin/upload_image")
+async def admin_upload_image(request: Request, file: UploadFile = File(...)):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+
+    content_type = (file.content_type or "").lower()
+    if content_type and not content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+
+    raw_name = file.filename or "image"
+    ext = Path(raw_name).suffix.lower()
+    if ext not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}:
+        ext = ".png"
+    stem = re.sub(r"[^a-zA-Z0-9_-]+", "-", Path(raw_name).stem).strip("-") or "image"
+    out_name = f"{stem}-{uuid4().hex[:10]}{ext}"
+
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = UPLOADS_DIR / out_name
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty file")
+    out_path.write_bytes(data)
+    return {"url": f"/static/uploads/{out_name}"}
 
 
 @app.get("/api/admin/prizes")

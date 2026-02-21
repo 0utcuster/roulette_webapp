@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Stars Roulette</title>
+  <title>CLO DROP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,25 +20,27 @@
     }
     html,body{ height:100%; font-family: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     .grad{
-      background:
-        radial-gradient(1000px 640px at 0% 0%, rgba(255,132,52,.18), transparent 58%),
-        radial-gradient(700px 500px at 100% 0%, rgba(87,112,255,.35), transparent 62%),
-        radial-gradient(700px 560px at 50% 100%, rgba(255,59,105,.18), transparent 64%),
-        linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      background: linear-gradient(160deg, #05070f 0%, #0a1130 45%, #101c45 100%);
       position: relative;
+      isolation: isolate;
     }
     .grad::before{
       content:"";
-      position:fixed; inset:0;
-      pointer-events:none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,.025) 0px,
-        rgba(255,255,255,.025) 1px,
-        transparent 2px,
-        transparent 4px
-      );
-      opacity:.25;
+      position: fixed;
+      inset: -25vh -25vw;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(50% 45% at 18% 22%, rgba(255,120,48,.20), transparent 70%),
+        radial-gradient(52% 48% at 84% 18%, rgba(97,134,255,.24), transparent 72%),
+        radial-gradient(48% 44% at 56% 84%, rgba(255,82,138,.14), transparent 74%);
+      filter: blur(38px) saturate(1.08);
+      transform: translate3d(0,0,0);
+      animation: bgFlow 28s ease-in-out infinite alternate;
+    }
+    @keyframes bgFlow{
+      0%{ transform: translate3d(0%, 0%, 0) scale(1.04); }
+      100%{ transform: translate3d(-3%, 2%, 0) scale(1.1); }
     }
     .card{
       background: linear-gradient(180deg, rgba(26,31,63,.9), rgba(12,16,35,.92));
@@ -115,24 +117,69 @@
     }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number]{ -moz-appearance: textfield; }
+    .online-dot{
+      width:10px; height:10px; border-radius:999px; background:#35ff84;
+      box-shadow: 0 0 0 0 rgba(53,255,132,.6);
+      animation: onlinePulse 1.6s infinite;
+    }
+    @keyframes onlinePulse{
+      0%{ box-shadow: 0 0 0 0 rgba(53,255,132,.6); opacity:1; }
+      70%{ box-shadow: 0 0 0 10px rgba(53,255,132,0); opacity:.75; }
+      100%{ box-shadow: 0 0 0 0 rgba(53,255,132,0); opacity:1; }
+    }
+    .live-toast{
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      top: 86px;
+      z-index: 70;
+      pointer-events: none;
+      transform: translateY(-8px);
+      opacity: 0;
+      transition: all .35s ease;
+    }
+    .live-toast.show{
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .fx-layer{
+      pointer-events:none;
+      position: fixed;
+      inset:0;
+      z-index:75;
+      overflow:hidden;
+    }
+    .fx-star{
+      position:absolute;
+      font-size:16px;
+      animation: starFall 1.8s linear forwards;
+      opacity: .9;
+      text-shadow: 0 0 14px rgba(255,200,80,.55);
+    }
+    @keyframes starFall{
+      0%{ transform: translateY(-20px) rotate(0deg) scale(.8); opacity:0; }
+      12%{ opacity:1; }
+      100%{ transform: translateY(110vh) rotate(540deg) scale(1.2); opacity:0; }
+    }
   </style>
 </head>
 
 <body class="grad text-white">
   <div class="min-h-screen safe-pad">
     <header class="px-4 pt-5">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 grid place-items-center">⭐</div>
-          <div>
-            <div class="text-xs text-white/70">Telegram Stars</div>
-            <div class="text-xl font-extrabold tracking-tight">Stars Roulette</div>
+      <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-stretch">
+        <div class="card rounded-2xl px-3 h-12 min-w-0 flex items-center gap-2">
+          <div class="h-8 w-8 rounded-xl bg-white/10 border border-white/15 grid place-items-center shrink-0">⭐</div>
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase tracking-wide text-white/60 leading-none">Telegram Stars</div>
+            <div class="text-sm font-extrabold tracking-tight truncate">CLO DROP</div>
           </div>
         </div>
-        <div class="card rounded-2xl px-3 py-2">
-          <div class="text-[11px] text-white/70 leading-none">Баланс</div>
-          <div class="font-extrabold text-sm"><span id="balance">—</span>⭐</div>
+        <div class="card rounded-2xl px-3 h-12 min-w-[120px] flex flex-col justify-center">
+          <div class="text-[10px] text-white/65 leading-none">Баланс</div>
+          <div class="font-black text-sm tracking-tight"><span id="balance">—</span><span class="text-amber-300">⭐</span></div>
         </div>
+        <button id="openProfileBtn" class="btn rounded-2xl bg-white/10 border border-white/15 h-12 px-4 text-xs font-extrabold whitespace-nowrap">Профиль</button>
       </div>
 
       <div class="mt-4 card rounded-3xl p-4">
@@ -140,16 +187,41 @@
           <div>
             <div class="text-sm font-extrabold">Панель управления</div>
             <div class="mt-1 text-xs text-white/70">
-              Спин стоит <span class="font-bold" id="spin-cost-inline">—</span>⭐. Выпадают тикеты, скидки или Stars.
+              Спин стоит <span class="font-bold" id="spin-cost-inline">—</span>⭐. Выпадают вещи, скидки или Stars.
             </div>
           </div>
-          <div class="flex gap-2">
-            <button id="depositBtn" class="btn btn-primary rounded-2xl font-extrabold px-4 py-2.5">Пополнить</button>
-            <button id="withdrawBtn" class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold px-4 py-2.5">Вывод</button>
+        </div>
+        <div class="mt-3 space-y-2">
+          <div class="flex items-center gap-2 rounded-2xl bg-black/20 border border-white/10 px-2 py-2 min-w-0">
+            <img id="userAvatar" src="/static/prizes/stars_150.svg" class="w-9 h-9 rounded-xl object-cover border border-white/15 shrink-0"/>
+            <div class="text-left min-w-0 flex-1">
+              <div id="userName" class="text-xs font-extrabold truncate">Игрок</div>
+              <div id="userHandle" class="text-[11px] text-white/60 truncate">@username</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="depositBtn" class="btn btn-primary rounded-2xl font-extrabold px-3 py-2.5 w-full">Пополнить</button>
+            <button id="withdrawBtn" class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold px-3 py-2.5 w-full">Вывод</button>
           </div>
         </div>
         <div class="mt-2 text-[11px] text-white/60" id="msg">—</div>
+        <div class="mt-3 flex items-center justify-between rounded-2xl bg-black/20 border border-white/10 px-3 py-2">
+          <div class="flex items-center gap-2">
+            <div class="online-dot"></div>
+            <div class="text-xs text-white/80">Сейчас онлайн</div>
+          </div>
+          <div class="font-extrabold text-sm"><span id="onlineCount">10</span></div>
+        </div>
       </div>
+
+      <button id="eventBannerBtn" class="mt-3 rounded-3xl overflow-hidden border border-white/15 relative w-full text-left">
+        <img id="eventBannerImg" src="/static/prizes/r4/ticket_sneakers_3.svg" class="w-full h-36 object-cover opacity-85"/>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
+        <div class="absolute left-4 bottom-4">
+          <div class="text-[11px] uppercase tracking-wide text-white/70" id="eventBannerSubtitle">Event</div>
+          <div class="text-2xl font-black leading-tight" id="eventBannerTitle">CLO DROP</div>
+        </div>
+      </button>
     </header>
 
     <main class="px-4 mt-4 space-y-4">
@@ -165,7 +237,7 @@
 
         <div class="flex items-center justify-between">
           <div>
-            <div id="roulette-title" class="text-lg font-black tracking-tight">Рулетка</div>
+            <div id="roulette-title" class="text-lg font-black tracking-tight">CLO DROP</div>
             <div class="text-xs font-bold text-white/55">Прокрут: <span id="spin-cost">—</span>⭐</div>
           </div>
           <div class="text-right">
@@ -177,14 +249,14 @@
         <div class="card rounded-3xl p-4">
           <div class="flex items-start justify-between">
             <div>
-              <div class="text-xs text-white/70">🎰 Рулетка</div>
+              <div class="text-xs text-white/70">🎰 Открытие кейса</div>
               <div class="text-lg font-extrabold">Крутите за <span id="spinCostTitle">—</span>⭐</div>
-              <div class="text-xs text-white/70 mt-1">В ленте — кроссы/браслет, а при выигрыше — тикет.</div>
+              <div class="text-xs text-white/70 mt-1">Выигрывайте вещи, скидки и Stars. Редкие механики открываются по ходу игры.</div>
             </div>
             <div class="text-right">
-              <div class="text-[11px] text-white/70">Билеты</div>
-              <div class="font-extrabold text-sm">👟 <span id="tSneakers">0</span>/10</div>
-              <div class="font-extrabold text-sm">📿 <span id="tBracelet">0</span>/5</div>
+              <div class="text-[11px] text-white/70">Серия</div>
+              <div class="font-extrabold text-sm">⚡ HOT DROP</div>
+              <div class="font-extrabold text-sm text-white/60">x<span id="hotStreak">1</span></div>
             </div>
           </div>
 
@@ -204,101 +276,19 @@
           </div>
         </div>
 
-        <div class="card rounded-3xl p-4">
-          <div class="font-extrabold">Физические призы</div>
-          <div class="text-xs text-white/70 mt-1">Когда накопите билеты — запросите приз, заявка попадёт в админку.</div>
-          <div class="mt-3 grid grid-cols-1 gap-2">
-            <button id="reqSneakers" class="btn rounded-2xl bg-white/10 border border-white/15 py-3 font-extrabold disabled:opacity-40" disabled>👟 Запросить кроссовки</button>
-            <button id="reqBracelet" class="btn rounded-2xl bg-white/10 border border-white/15 py-3 font-extrabold disabled:opacity-40" disabled>📿 Запросить браслет</button>
-          </div>
-          <div class="mt-2 text-[11px] text-white/60" id="prizeHint">—</div>
+        <div class="card rounded-3xl p-4 hidden" id="vaultPreviewCard">
+          <div class="font-extrabold">Секретный инвентарь</div>
+          <div class="text-xs text-white/70 mt-1">После редкого дропа вам доступен закрытый раздел наград.</div>
+          <button id="openVaultBtn" class="btn btn-primary mt-3 w-full rounded-2xl font-extrabold py-3">Открыть инвентарь</button>
         </div>
       </section>
 
-      <!-- КАБИНЕТ -->
-      <section id="screen-cabinet" class="space-y-4 hidden">
-        <div class="card rounded-3xl p-4">
-          <div class="text-xs text-white/70">👤 Личный кабинет</div>
-          <div class="text-lg font-extrabold mt-1">Профиль и прогресс</div>
-
-          <div class="mt-3 grid grid-cols-1 gap-3">
-            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
-              <div class="flex items-center justify-between">
-                <div class="font-extrabold">👟 Кроссовки</div>
-                <div class="text-xs text-white/70"><span id="cabSneakers">0</span>/10</div>
-              </div>
-              <div class="mt-2 h-2.5 rounded-full bg-white/10 overflow-hidden">
-                <div id="barSneakers" class="h-full bg-white/60" style="width:0%"></div>
-              </div>
-            </div>
-
-            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
-              <div class="flex items-center justify-between">
-                <div class="font-extrabold">📿 Браслет</div>
-                <div class="text-xs text-white/70"><span id="cabBracelet">0</span>/5</div>
-              </div>
-              <div class="mt-2 h-2.5 rounded-full bg-white/10 overflow-hidden">
-                <div id="barBracelet" class="h-full bg-white/60" style="width:0%"></div>
-              </div>
-            </div>
-
-            <!-- РЕФЕРАЛКА -->
-            <div class="rounded-3xl bg-white/5 border border-white/15 p-4">
-              <div class="text-[11px] text-white/70">Ваша реферальная ссылка</div>
-              <div class="mt-2 flex gap-2">
-                <input id="refLink" class="w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-xs focus:outline-none" value="—" readonly/>
-                <button id="copyRef" class="btn rounded-2xl bg-white text-black font-extrabold px-4">Copy</button>
-              </div>
-              <div class="mt-2 text-[11px] text-white/60">+100⭐ Вам, +50⭐ другу при первом входе по ссылке.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card rounded-3xl p-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-xs text-white/70">История</div>
-              <div class="font-extrabold">Последние операции</div>
-            </div>
-            <button id="moreHistory" class="btn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 font-extrabold">Ещё</button>
-          </div>
-          <div class="mt-3 space-y-2" id="history"></div>
-        </div>
-
-        <div class="card rounded-3xl p-4">
-          <div class="text-xs text-white/70">FAQ</div>
-          <div class="font-extrabold mt-1">Частые вопросы</div>
-
-          <div class="mt-3 space-y-2 text-sm">
-            <details class="rounded-2xl bg-white/5 border border-white/15 p-3">
-              <summary class="font-extrabold cursor-pointer">Что выпадает в рулетке?</summary>
-              <div class="mt-2 text-white/70 text-xs">Выпадают тикеты, скидки или Stars. Кроссовки/браслет напрямую не падают — только тикеты.</div>
-            </details>
-            <details class="rounded-2xl bg-white/5 border border-white/15 p-3">
-              <summary class="font-extrabold cursor-pointer">Как работает реферальная система?</summary>
-              <div class="mt-2 text-white/70 text-xs">При первом входе по Вашей ссылке: Вам +100⭐, другу +50⭐.</div>
-            </details>
-          </div>
-        </div>
-
-        <a id="adminLink" class="hidden card rounded-3xl p-4 block" href="/admin">
-          <div class="font-extrabold">⚙️ Админка</div>
-          <div class="text-xs text-white/70 mt-1">Доступно только админам.</div>
-        </a>
-      </section>
     </main>
-
-    <nav class="nav fixed bottom-0 inset-x-0 bg-black/30 backdrop-blur border-t border-white/10">
-      <div class="max-w-md mx-auto px-4 py-3 grid grid-cols-2 gap-3">
-        <button class="btn rounded-2xl bg-white text-black font-extrabold py-3" id="navRoulette">🎰 Рулетка</button>
-        <button class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold py-3" id="navCabinet">👤 Кабинет</button>
-      </div>
-    </nav>
   </div>
 
   <!-- Deposit modal -->
   <div id="depositModal" class="hidden fixed inset-0 modal-backdrop z-50">
-    <div class="min-h-full grid place-items-center px-4">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-sm rounded-3xl p-4">
         <div class="text-sm font-extrabold">Пополнить Stars</div>
         <div class="text-xs text-white/70 mt-1">Введите сумму (⭐)</div>
@@ -315,7 +305,7 @@
 
   <!-- Withdraw modal -->
   <div id="withdrawModal" class="hidden fixed inset-0 modal-backdrop z-50">
-    <div class="min-h-full grid place-items-center px-4">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-sm rounded-3xl p-4">
         <div class="text-sm font-extrabold">Вывод Stars</div>
         <div class="text-xs text-white/70 mt-1">Введите сумму (минимум 1000⭐)</div>
@@ -332,7 +322,7 @@
 
   <!-- Case preview modal -->
   <div id="casePreviewModal" class="hidden fixed inset-0 modal-backdrop z-50">
-    <div class="min-h-full grid place-items-center px-4">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-md rounded-3xl p-4 result-pop">
         <div class="flex items-center justify-between">
           <div class="text-sm font-extrabold">Выбор кейса</div>
@@ -352,7 +342,7 @@
 
   <!-- Fullscreen result/alerts -->
   <div id="resultOverlay" class="hidden fixed inset-0 z-[60] modal-backdrop">
-    <div class="min-h-full grid place-items-center px-4">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="w-full max-w-sm rounded-3xl border border-white/20 bg-[#0c1224]/95 p-5 shadow-2xl result-pop">
         <div id="resultBadge" class="case-tag">Результат</div>
         <div id="resultTitle" class="mt-3 text-2xl font-black leading-tight">—</div>
@@ -365,9 +355,80 @@
     </div>
   </div>
 
+  <div id="liveWinToast" class="live-toast">
+    <div class="rounded-2xl border border-white/20 bg-[#0f1635]/95 px-3 py-2 shadow-2xl">
+      <div class="text-[10px] text-white/60 uppercase">Live drop</div>
+      <div id="liveWinText" class="text-sm font-extrabold">Игрок выиграл приз</div>
+    </div>
+  </div>
+
+  <div id="fxLayer" class="fx-layer"></div>
+
+  <div id="eventModal" class="hidden fixed inset-0 modal-backdrop z-[64]">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
+      <div class="card w-full max-w-md rounded-3xl p-5 result-pop">
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-white/70">Событие</div>
+          <button id="eventModalClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+        </div>
+        <img id="eventModalImg" src="/static/prizes/r4/ticket_sneakers_3.svg" class="mt-2 w-full h-36 rounded-2xl object-cover border border-white/15"/>
+        <div id="eventModalTitle" class="mt-3 text-2xl font-black">CLO DROP</div>
+        <div id="eventModalText" class="mt-2 text-sm text-white/75">Описание ивента</div>
+        <button id="eventModalAction" class="btn btn-primary mt-4 w-full rounded-2xl py-3 font-extrabold">Участвовать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden tickets vault -->
+  <div id="ticketVaultModal" class="hidden fixed inset-0 modal-backdrop z-[65]">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
+      <div class="card w-full max-w-sm max-h-[88dvh] overflow-hidden rounded-3xl p-5 result-pop flex flex-col">
+        <div class="shrink-0">
+          <div class="text-xs text-white/70">Закрытый раздел</div>
+          <div class="text-2xl font-black mt-1">Инвентарь доступов</div>
+          <div class="text-xs text-white/70 mt-2">Теперь вы можете копить доступы и обменивать их на награды.</div>
+        </div>
+        <div class="mt-4 flex-1 overflow-y-auto pr-1">
+          <div class="rounded-2xl bg-white/5 border border-white/15 p-3">
+            <div class="text-xs font-extrabold">Прогресс до вывода</div>
+            <div id="progressList" class="mt-2 space-y-3"></div>
+          </div>
+          <div id="inventoryList" class="mt-4 space-y-2"></div>
+        </div>
+        <button id="ticketVaultClose" class="btn btn-primary mt-4 w-full rounded-2xl font-extrabold py-3 shrink-0">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="hidden fixed inset-0 modal-backdrop z-[63]">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
+      <div class="card w-full max-w-md rounded-3xl p-4 result-pop">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-white/70">Профиль</div>
+            <div class="text-lg font-black">Аккаунт и история</div>
+          </div>
+          <button id="profileClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+        </div>
+        <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3">
+          <div class="text-[11px] text-white/70">Ваша реферальная ссылка</div>
+          <div class="mt-2 flex gap-2">
+            <input id="refLink" class="w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-xs focus:outline-none" value="—" readonly/>
+            <button id="copyRef" class="btn rounded-2xl bg-white text-black font-extrabold px-4">Copy</button>
+          </div>
+        </div>
+        <div class="mt-3 text-xs text-white/70">История операций</div>
+        <div id="history" class="mt-2 max-h-72 overflow-auto space-y-2"></div>
+        <div class="mt-3 text-xs text-white/70">Мои рефералы</div>
+        <div id="myReferrals" class="mt-2 max-h-48 overflow-auto space-y-2"></div>
+        <a id="adminLink" class="hidden mt-3 card rounded-3xl p-3 block text-center" href="/admin">⚙️ Админка</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Spin modal -->
   <div id="caseSpinModal" class="hidden fixed inset-0 modal-backdrop z-[55]">
-    <div class="min-h-full grid place-items-center px-4 py-6">
+    <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-md rounded-3xl p-4 result-pop">
         <div class="flex items-center justify-between gap-2">
           <div>
@@ -379,8 +440,16 @@
         <div class="mt-3 relative overflow-hidden rounded-3xl border border-white/15 bg-white/5" style="height: 320px;">
           <div class="absolute inset-0 pointer-events-none">
             <div class="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-white/20"></div>
-            <div class="absolute left-0 right-0 top-0 h-10 bg-gradient-to-b from-[#070814] to-transparent"></div>
-            <div class="absolute left-0 right-0 bottom-0 h-10 bg-gradient-to-t from-[#070814] to-transparent"></div>
+            <div class="absolute left-0 right-0 top-0 h-12 bg-gradient-to-b from-[#070814]/95 via-[#070814]/65 to-transparent backdrop-blur-[2px]"></div>
+            <div class="absolute left-0 right-0 bottom-0 h-12 bg-gradient-to-t from-[#070814]/95 via-[#070814]/65 to-transparent backdrop-blur-[2px]"></div>
+            <div class="absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r from-[#070814]/80 to-transparent"></div>
+            <div class="absolute top-0 bottom-0 right-0 w-4 bg-gradient-to-l from-[#070814]/80 to-transparent"></div>
+          </div>
+          <div class="absolute left-2 top-1/2 -translate-y-1/2 z-20">
+            <div class="w-0 h-0 border-t-[12px] border-b-[12px] border-r-[18px] border-t-transparent border-b-transparent border-r-[#ffd36e] drop-shadow-[0_0_10px_rgba(255,211,110,0.9)]"></div>
+          </div>
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 z-20">
+            <div class="w-0 h-0 border-t-[12px] border-b-[12px] border-l-[18px] border-t-transparent border-b-transparent border-l-[#ffd36e] drop-shadow-[0_0_10px_rgba(255,211,110,0.9)]"></div>
           </div>
           <div id="reelModal" class="reel flex flex-col gap-3 py-5 px-4" style="transform: translateY(0px);"></div>
         </div>
@@ -390,6 +459,6 @@
   </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="/static/mobile.js?v=200"></script>
+  <script src="/static/mobile.js?v=201"></script>
 </body>
 </html>
