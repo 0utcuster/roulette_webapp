@@ -90,6 +90,10 @@ function rarityLabel(r){
   return ({ blue:"Синий", purple:"Фиолетовый", red:"Красный", yellow:"Жёлтый" })[rarityKey(r)];
 }
 function rarityCss(r){ return `rarity-${rarityKey(r)}`; }
+function caseTopRarity(caseObj){
+  const v = (caseObj?.prizes || []).reduce((acc,p)=>Math.max(acc, rarityValue(p?.rarity)), 1);
+  return ({1:"blue",2:"purple",3:"red",4:"yellow"})[v] || "blue";
+}
 
 function isHighTierPrize(key){
   const k = String(key || "");
@@ -107,6 +111,8 @@ function isHighTierPrize(key){
 let state={ rouletteId:null, rouletteCost:0, currentCase:null, cases:[], uiConfig:null };
 let modalOpenCount = 0;
 let lockedScrollY = 0;
+let reelAnimRaf = 0;
+let reelAnimRunId = 0;
 
 function setMsg(text){ const el=$("msg"); if(el) el.textContent=text||"—"; }
 
@@ -159,25 +165,34 @@ function launchDropFx(count=28){
   }
 }
 
+function clearDropFx(){
+  const layer=$("fxLayer");
+  if(layer) layer.innerHTML = "";
+}
+
 function setupOnlineCounter(){
   const el=$("onlineCount"); if(!el) return;
   const now = new Date();
   const h = now.getHours();
-  let base = 10;
-  if(h >= 0 && h < 7) base = 5;
-  else if(h >= 7 && h < 12) base = 9;
-  else if(h >= 12 && h < 18) base = 12;
-  else if(h >= 18 && h < 24) base = 16;
-  const update=()=>{ el.textContent = String(Math.max(3, base + randint(-2,2))); };
+  let base = 8;
+  if(h >= 0 && h < 7) base = 4;
+  else if(h >= 7 && h < 12) base = 7;
+  else if(h >= 12 && h < 18) base = 10;
+  else if(h >= 18 && h < 24) base = 13;
+  const update=()=>{ el.textContent = String(Math.max(2, base + randint(-2,1))); };
   update();
-  setInterval(update, 9000);
+  setInterval(update, 12000);
 }
 
 function setupLiveWinsFeed(){
   const toast=$("liveWinToast");
   const text=$("liveWinText");
   if(!toast || !text) return;
-  const names=["mike","lina","ghost","vovan","ninja","sova","astro","max","kira","qwerty","neo","panda"];
+  const names=[
+    "mike","lina","ghost","vovan","ninja","sova","astro","max","kira","qwerty","neo","panda",
+    "dima","kris","roman","timur","alisa","egor","denis","vlad","sasha","artem","lev","mark",
+    "nikita","masha","yarik","igor","stepa","andrey","ilya","vika","yan","polina","danik","tema"
+  ];
   const prizes=["Обувь","Толстовка","Скидка 20%","200⭐","1000⭐","Сертификат 3000₽","VIP-ключ"];
   const show=()=>{
     const n=names[randint(0,names.length-1)];
@@ -187,7 +202,11 @@ function setupLiveWinsFeed(){
     setTimeout(()=>toast.classList.remove("show"), 3600);
   };
   setTimeout(show, 5000);
-  setInterval(show, randint(14000,22000));
+  const loop=()=>{
+    show();
+    setTimeout(loop, randint(22000,34000));
+  };
+  setTimeout(loop, randint(22000,30000));
 }
 
 function setupEventBanner(cfg){
@@ -199,6 +218,23 @@ function setupEventBanner(cfg){
   if($("eventModalTitle")) $("eventModalTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
   if($("eventModalText")) $("eventModalText").textContent = e.text || "Открывайте кейсы и забирайте праздничные награды.";
   if($("eventModalImg") && e.image) $("eventModalImg").src = e.image;
+  if($("eventModalAction")) $("eventModalAction").textContent = e.cta_label || "Подписаться";
+}
+
+function openPromoLink(url){
+  const href = String(url || "").trim();
+  if(!href) return;
+  try{
+    if(tg && href.includes("t.me/") && typeof tg.openTelegramLink === "function"){
+      tg.openTelegramLink(href);
+      return;
+    }
+    if(tg && typeof tg.openLink === "function"){
+      tg.openLink(href);
+      return;
+    }
+  }catch{}
+  window.open(href, "_blank", "noopener,noreferrer");
 }
 
 function setupContactButton(cfg){
@@ -272,12 +308,12 @@ async function loadInventory(){
           <div class="h-full ${idx % 2 === 0 ? "bg-gradient-to-r from-amber-300 to-orange-400" : "bg-gradient-to-r from-cyan-300 to-blue-400"}" style="width:${Math.max(0, Math.min(100, Number(p.percent || 0)))}%"></div>
         </div>
         <div class="mt-1 text-[11px] ${
-          Number(p.left||0)===1 ? "text-rose-200" :
+          Number(p.left||0)===1 ? "text-white/60" :
           (Number(p.left||0)===2 || Number(p.left||0)===3) ? "text-amber-200" :
           "text-white/60"
         }">
           ${
-            Number(p.left||0)===1 ? "Финишный тикет выпадает реже (маленький шанс)" :
+            Number(p.left||0)===1 ? `Осталось: ${Math.max(0, Number(p.left || 0))}` :
             (Number(p.left||0)===2 || Number(p.left||0)===3) ? `Осталось ${Math.max(0, Number(p.left || 0))}: шанс на тикет повышен` :
             `Осталось: ${Math.max(0, Number(p.left || 0))}`
           }
@@ -341,6 +377,11 @@ function openCasePreview(c){
   const first = prizes[0] || null;
   const thumb=c.avatar || (first ? ((first.images||[])[0] || "") : "");
   $("casePreviewImg").src=thumb || "";
+  const previewArt = $("casePreviewArt");
+  if(previewArt){
+    previewArt.classList.remove("rarity-blue","rarity-purple","rarity-red","rarity-yellow");
+    previewArt.classList.add(rarityCss(caseTopRarity(c)));
+  }
   $("casePreviewTitle").textContent=c.title || c.id;
   $("casePreviewDesc").textContent=c.desc || "Открой кейс и забери мощный дроп.";
   $("casePreviewPrice").textContent=`${c.cost}⭐`;
@@ -429,18 +470,16 @@ async function buildRouletteGrid(){
   for(const c of list){
     const firstPrize = (c.prizes || [])[0];
     const thumb = c.avatar || ((firstPrize?.images || [])[0] || "");
-    const topRarity = (c.prizes || []).reduce((acc,p)=>Math.max(acc, rarityValue(p.rarity)), 1);
-    const frameRarity = ({1:"blue",2:"purple",3:"red",4:"yellow"})[topRarity] || "blue";
+    const frameRarity = caseTopRarity(c);
     const btn=document.createElement("button");
-    btn.className=`roulette-card text-left rounded-3xl border border-white/15 bg-white/5 overflow-hidden relative p-2 ${rarityCss(frameRarity)}`;
+    btn.className=`roulette-card text-left rounded-3xl overflow-hidden relative p-1 ${rarityCss(frameRarity)}`;
     btn.innerHTML=`
-      <div class="case-cover">
+      <div class="roulette-case-art">
         ${thumb?`<img src="${thumb}" alt="${esc(c.title)}"/>`:``}
-        <div class="absolute left-2 top-2 z-10 case-tag">${c.cost}⭐</div>
-        <div class="absolute left-2 right-2 bottom-2 z-10 text-sm font-black truncate">${esc(c.title)}</div>
       </div>
-      <div class="p-2">
-        <div class="text-[11px] text-white/60 line-clamp-2">${esc(c.desc)}</div>
+      <div class="roulette-case-meta px-1 pb-2">
+        <div class="roulette-case-name">${esc(c.title)}</div>
+        <div class="roulette-price-pill">${c.cost}⭐</div>
       </div>
     `;
     btn.addEventListener("click", ()=>openCasePreview(c));
@@ -458,6 +497,7 @@ async function buildRouletteGrid(){
 
 async function buildReel(rouletteId, reelId="reelModal"){
   const reel=$(reelId); if(!reel) return;
+  const wrap = reel.parentElement;
 
   const c = state.cases.find(x=>x.id===rouletteId);
   const prizes = (c?.prizes || []).filter(p => (p.images||[]).length);
@@ -485,10 +525,19 @@ async function buildReel(rouletteId, reelId="reelModal"){
   }
   reel.style.transition="none";
   reel.style.transform="translateY(0px)";
+  reel.style.filter="blur(0px) saturate(1)";
+  reel.style.willChange="";
+  if(wrap) wrap.style.boxShadow="";
 }
 
 async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
   const reel=$(reelId);
+  if(!reel) return;
+  if(reelAnimRaf){
+    cancelAnimationFrame(reelAnimRaf);
+    reelAnimRaf = 0;
+  }
+  const runId = ++reelAnimRunId;
   const items=[...reel.querySelectorAll(".prize-card")];
   if(!items.length) return;
 
@@ -515,6 +564,8 @@ async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const wrap = reel.parentElement;
+  reel.style.willChange = "transform, filter";
+  items.forEach((el)=>el.classList.remove("is-target"));
 
   reel.style.transform = `translateY(${startY}px)`;
   reel.style.filter = "blur(0px) saturate(1)";
@@ -524,6 +575,14 @@ async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
   await new Promise((resolve) => {
     const t0 = now();
     const frame = () => {
+      if(runId !== reelAnimRunId){
+        reel.style.filter = "blur(0px) saturate(1)";
+        reel.style.willChange = "";
+        if (wrap) wrap.style.boxShadow = "";
+        reelAnimRaf = 0;
+        resolve();
+        return;
+      }
       const ts = now();
       const p = clamp01((ts - t0) / duration);
 
@@ -546,17 +605,19 @@ async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
       lastTs = ts;
 
       if (p < 1) {
-        requestAnimationFrame(frame);
+        reelAnimRaf = requestAnimationFrame(frame);
       } else {
         reel.style.transform = `translateY(${targetY}px)`;
         reel.style.filter = "blur(0px) saturate(1)";
+        reel.style.willChange = "";
         if (wrap) wrap.style.boxShadow = "";
         items.forEach((el)=>el.classList.remove("is-target"));
         targetEl?.classList.add("is-target");
+        reelAnimRaf = 0;
         resolve();
       }
     };
-    requestAnimationFrame(frame);
+    reelAnimRaf = requestAnimationFrame(frame);
   });
 }
 
@@ -687,6 +748,7 @@ async function doSpin(){
       throw new Error("Сначала выберите кейс");
     }
     setMsg("Крутим…");
+    clearDropFx();
     await buildReel(state.rouletteId, "reelModal");
     const res = await api("/api/spin", {
       method:"POST",
@@ -756,12 +818,20 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     $("eventBannerBtn")?.addEventListener("click", ()=>openModal("eventModal"));
     $("eventModalClose")?.addEventListener("click", ()=>closeModal("eventModal"));
     $("eventModalAction")?.addEventListener("click", ()=>{
+      const e = state?.uiConfig?.event || {};
+      const ctaUrl = String(e.cta_url || "").trim();
+      if(ctaUrl){
+        openPromoLink(ctaUrl);
+        closeModal("eventModal");
+        setMsg("Открываю Telegram-канал…");
+        return;
+      }
       closeModal("eventModal");
       openResultOverlay({
-        badge:"Event",
-        title:"Ивент активирован",
-        text:"Открывайте кейсы в прайм-тайм и поднимайтесь в топе.",
-        primary:"К кейсам"
+        badge:"Ивент",
+        title:"Подпишитесь на канал",
+        text:"В канале публикуем новые кейсы, акции и промокоды.",
+        primary:"Понятно"
       });
     });
     $("openSpinModalBtn")?.addEventListener("click", ()=>{
