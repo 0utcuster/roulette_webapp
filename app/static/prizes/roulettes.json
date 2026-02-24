@@ -2,8 +2,17 @@
   "event": {
     "title": "ИВЕНТ К 23 ФЕВРАЛЯ",
     "subtitle": "Праздничный дроп уже активен",
+    "shop_mention": "villageweb.ru",
     "text": "Открывай кейсы в честь 23 февраля, собирай доступы и забирай тематические награды. Пиковые часы: 19:00-23:00 по МСК.",
     "image": "/static/prizes/r4/ticket_sneakers_3.svg"
+  },
+  "contact": {
+    "label": "Контакты",
+    "url": "https://t.me/managerbalenciaga"
+  },
+  "economy": {
+    "ticket_sell_percent": 50,
+    "near_target_ticket_boost_percent": 8
   },
   "roulettes": {
     "r1": {

@@ -98,13 +98,16 @@ def require_admin(uid: int | None):
 
 def load_media_config() -> dict:
     if not MEDIA_CONFIG_PATH.exists():
-        return {"event": {}, "roulettes": {}}
+        return {"event": {}, "roulettes": {}, "ticket_targets": {}, "economy": {}, "contact": {}}
     with MEDIA_CONFIG_PATH.open("r", encoding="utf-8") as f:
         data = json.load(f)
     if not isinstance(data, dict):
-        return {"event": {}, "roulettes": {}}
+        return {"event": {}, "roulettes": {}, "ticket_targets": {}, "economy": {}, "contact": {}}
     data.setdefault("event", {})
     data.setdefault("roulettes", {})
+    data.setdefault("ticket_targets", {})
+    data.setdefault("economy", {})
+    data.setdefault("contact", {})
     return data
 
 
@@ -113,6 +116,9 @@ def save_media_config(payload: dict) -> None:
         raise HTTPException(status_code=400, detail="payload must be object")
     payload.setdefault("event", {})
     payload.setdefault("roulettes", {})
+    payload.setdefault("ticket_targets", {})
+    payload.setdefault("economy", {})
+    payload.setdefault("contact", {})
     MEDIA_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with MEDIA_CONFIG_PATH.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -134,6 +140,61 @@ def _human_code_title(code: str) -> str:
         "vip_key": "VIP-ключ",
     }
     return mapping.get(code, code.replace("_", " ").strip() or "Приз")
+
+
+def _rarity_title(v: str) -> str:
+    return {
+        "blue": "Синий",
+        "purple": "Фиолетовый",
+        "red": "Красный",
+        "yellow": "Жёлтый",
+    }.get(str(v or "").lower(), "Синий")
+
+
+def _ticket_sell_percent(media: dict) -> int:
+    economy = media.get("economy") if isinstance(media.get("economy"), dict) else {}
+    return max(0, min(100, int((economy or {}).get("ticket_sell_percent") or 50)))
+
+
+def _ticket_sell_lots(db: Session, user: User, media: dict) -> list[dict]:
+    sell_percent = _ticket_sell_percent(media)
+    rows = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == int(user.user_id), Transaction.type == TxType.win)
+        .order_by(Transaction.id.desc())
+        .all()
+    )
+    lots: list[dict] = []
+    for t in rows:
+        meta = dict(t.meta or {})
+        added = int(meta.get("hidden_tickets_added") or 0)
+        sold = int(meta.get("hidden_tickets_sold") or 0)
+        left = max(0, added - sold)
+        if left <= 0:
+            continue
+        code = str(meta.get("prize_code") or "")
+        if not code:
+            continue
+        case_cost = max(0, int(meta.get("case_cost") or 0))
+        unit_price = (case_cost * sell_percent) // 100 if case_cost > 0 else 0
+        lots.append(
+            {
+                "tx_id": int(t.id),
+                "code": code,
+                "title": _human_code_title(code),
+                "ticket_kind": str(meta.get("hidden_ticket_kind") or ("bracelet" if code == "bracelet" else "sneakers")),
+                "rarity": str(meta.get("rarity") or "blue"),
+                "rarity_title": _rarity_title(str(meta.get("rarity") or "blue")),
+                "left": left,
+                "case_id": str(meta.get("roulette_id") or ""),
+                "case_cost": case_cost,
+                "sell_percent": sell_percent,
+                "unit_sell_price": unit_price,
+                "sell_price_total": unit_price * left,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+            }
+        )
+    return lots
 
 
 # ---------------- PUBLIC PAGES ----------------
@@ -171,6 +232,61 @@ def api_me(request: Request, db: Session = Depends(get_db)):
     }
 
 
+@app.get("/api/cases")
+def api_cases(db: Session = Depends(get_db)):
+    media = load_media_config()
+    media_roulettes = media.get("roulettes") if isinstance(media.get("roulettes"), dict) else {}
+    items: list[dict] = []
+    for c in list_cases(db):
+        if not int(c.get("is_enabled") or 0):
+            continue
+        rid = str(c.get("id") or "")
+        media_case = media_roulettes.get(rid) if isinstance(media_roulettes, dict) else {}
+        if not isinstance(media_case, dict):
+            media_case = {}
+        media_items = media_case.get("items") if isinstance(media_case.get("items"), dict) else {}
+        prizes = []
+        for p in (c.get("prizes") or []):
+            if not int(p.get("is_enabled") or 0):
+                continue
+            code = str(p.get("code") or "")
+            prizes.append(
+                {
+                    "code": code,
+                    "title": str(p.get("title") or code or "Приз"),
+                    "type": str(p.get("type") or "item"),
+                    "amount": int(p.get("amount") or 0),
+                    "weight": int(p.get("weight") or 0),
+                    "rarity": str(p.get("rarity") or "blue"),
+                    "images": list(media_items.get(code) or []),
+                }
+            )
+        items.append(
+            {
+                "id": rid,
+                "title": str(c.get("title") or rid),
+                "spin_cost": int(c.get("spin_cost") or 0),
+                "slots": int(c.get("slots") or 0),
+                "desc": str(media_case.get("desc") or ""),
+                "avatar": str(media_case.get("avatar") or ""),
+                "prizes": prizes,
+            }
+        )
+
+    event = media.get("event") if isinstance(media.get("event"), dict) else {}
+    contact = media.get("contact") if isinstance(media.get("contact"), dict) else {}
+    economy = media.get("economy") if isinstance(media.get("economy"), dict) else {}
+    return {
+        "items": items,
+        "event": event,
+        "contact": contact,
+        "economy": {
+            "ticket_sell_percent": _ticket_sell_percent(media),
+            "near_target_ticket_boost_percent": max(0, min(100, int((economy or {}).get("near_target_ticket_boost_percent") or 0))),
+        },
+    }
+
+
 @app.post("/api/spin")
 def api_spin(payload: SpinIn, request: Request, db: Session = Depends(get_db)):
     uid = get_tg_user_id(request)
@@ -187,6 +303,7 @@ def api_spin(payload: SpinIn, request: Request, db: Session = Depends(get_db)):
     return {
         "roulette_id": roulette_id,
         "prize_key": (result.get("prize") or {}).get("code"),
+        "prize": (result.get("prize") or {}),
         "message": (result.get("ui") or {}).get("win_text") or "OK",
         "balance": int(u.balance),
         "tickets_sneakers": int(u.tickets_sneakers),
@@ -278,6 +395,7 @@ def api_inventory(request: Request, db: Session = Depends(get_db)):
     uid = get_tg_user_id(request)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
+    u = ensure_user(db, uid)
 
     rows = (
         db.query(Transaction)
@@ -292,8 +410,10 @@ def api_inventory(request: Request, db: Session = Depends(get_db)):
         meta = t.meta or {}
         code = str(meta.get("prize_code") or "")
         added = int(meta.get("hidden_tickets_added") or 0)
-        if code and added > 0:
-            items[code] = int(items.get(code, 0)) + added
+        sold = int(meta.get("hidden_tickets_sold") or 0)
+        left = max(0, added - sold)
+        if code and left > 0:
+            items[code] = int(items.get(code, 0)) + left
 
     media = load_media_config()
     raw_targets = media.get("ticket_targets") or {}
@@ -341,6 +461,78 @@ def api_inventory(request: Request, db: Session = Depends(get_db)):
         "items": [{"code": k, "count": int(v)} for k, v in sorted(items.items(), key=lambda kv: kv[0])],
         "total": int(sum(items.values())),
         "progress": progress,
+        "lots": _ticket_sell_lots(db, u, media),
+        "economy": {"ticket_sell_percent": _ticket_sell_percent(media)},
+    }
+
+
+@app.post("/api/tickets/sell")
+def api_tickets_sell(payload: dict, request: Request, db: Session = Depends(get_db)):
+    uid = get_tg_user_id(request)
+    if not uid:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    tx_id = int(payload.get("tx_id") or 0)
+    if tx_id <= 0:
+        raise HTTPException(status_code=400, detail="tx_id required")
+
+    u = ensure_user(db, uid)
+    row = (
+        db.query(Transaction)
+        .filter(Transaction.id == tx_id, Transaction.user_id == int(uid), Transaction.type == TxType.win)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Ticket lot not found")
+
+    meta = dict(row.meta or {})
+    added = int(meta.get("hidden_tickets_added") or 0)
+    sold = int(meta.get("hidden_tickets_sold") or 0)
+    left = max(0, added - sold)
+    if left <= 0:
+        raise HTTPException(status_code=400, detail="Лот уже продан")
+
+    ticket_kind = str(meta.get("hidden_ticket_kind") or ("bracelet" if str(meta.get("prize_code") or "") == "bracelet" else "sneakers"))
+    if ticket_kind == "bracelet":
+        if int(u.tickets_bracelet or 0) < left:
+            raise HTTPException(status_code=400, detail="Недостаточно тикетов браслета")
+    else:
+        if int(u.tickets_sneakers or 0) < left:
+            raise HTTPException(status_code=400, detail="Недостаточно тикетов обуви")
+
+    media = load_media_config()
+    sell_percent = _ticket_sell_percent(media)
+    case_cost = max(0, int(meta.get("case_cost") or 0))
+    unit_price = (case_cost * sell_percent) // 100 if case_cost > 0 else 0
+    total_credit = unit_price * left
+    if total_credit <= 0:
+        raise HTTPException(status_code=400, detail="Для этого лота нет цены выкупа")
+
+    if ticket_kind == "bracelet":
+        u.tickets_bracelet = max(0, int(u.tickets_bracelet or 0) - left)
+    else:
+        u.tickets_sneakers = max(0, int(u.tickets_sneakers or 0) - left)
+    u.balance = int(u.balance or 0) + total_credit
+
+    meta["hidden_tickets_sold"] = sold + left
+    row.meta = meta
+    db.add(row)
+    db.add(u)
+    db.add(Transaction(
+        user_id=int(uid),
+        type=TxType.win,
+        amount=int(total_credit),
+        description=f"Продажа тикетов: {_human_code_title(str(meta.get('prize_code') or 'ticket'))}",
+        meta={"ticket_sell_tx_id": int(tx_id), "ticket_count": int(left), "unit_price": int(unit_price), "case_cost": int(case_cost)},
+    ))
+    db.commit()
+    db.refresh(u)
+    return {
+        "ok": True,
+        "credited": int(total_credit),
+        "balance": int(u.balance),
+        "tickets_sneakers": int(u.tickets_sneakers),
+        "tickets_bracelet": int(u.tickets_bracelet),
     }
 
 
@@ -810,3 +1002,106 @@ def admin_referrals_details(
         {"user_id": int(u.user_id), "created_at": u.created_at.isoformat() if u.created_at else None, "deposit_sum": dep_map.get(int(u.user_id), 0)}
         for u in invitees
     ]}
+
+
+@app.get("/api/admin/stats")
+def admin_stats(
+    request: Request,
+    from_: str = Query(default="", alias="from"),
+    to: str = Query(default=""),
+    db: Session = Depends(get_db),
+):
+    uid = get_tg_user_id(request)
+    require_admin(uid)
+
+    dt_from = _parse_date(from_)
+    dt_to = _parse_date(to)
+
+    tx_filters = []
+    if dt_from:
+        tx_filters.append(Transaction.created_at >= dt_from)
+    if dt_to:
+        tx_filters.append(Transaction.created_at <= dt_to)
+    tx_rows = db.query(Transaction).filter(*tx_filters).order_by(Transaction.created_at.asc()).all()
+
+    by_day: dict[str, dict] = {}
+    by_case: dict[str, dict] = {}
+    users_set: set[int] = set()
+    totals = {
+        "spins_count": 0,
+        "spent_on_spins": 0,
+        "deposits": 0,
+        "wins_stars": 0,
+        "ticket_sales": 0,
+        "withdraws": 0,
+        "unique_users": 0,
+    }
+
+    for t in tx_rows:
+        day_key = t.created_at.date().isoformat() if t.created_at else "unknown"
+        day = by_day.setdefault(day_key, {
+            "date": day_key,
+            "spins_count": 0,
+            "spent_on_spins": 0,
+            "deposits": 0,
+            "wins_stars": 0,
+            "ticket_sales": 0,
+            "withdraws": 0,
+            "unique_users_set": set(),
+        })
+        day["unique_users_set"].add(int(t.user_id))
+        users_set.add(int(t.user_id))
+
+        amt = int(t.amount or 0)
+        meta = t.meta or {}
+        if t.type == TxType.spin:
+            spend = abs(amt)
+            day["spins_count"] += 1
+            day["spent_on_spins"] += spend
+            totals["spins_count"] += 1
+            totals["spent_on_spins"] += spend
+            rid = str(meta.get("roulette_id") or "")
+            if not rid:
+                m = re.search(r"\((r\d+)\)$", str(t.description or ""))
+                rid = m.group(1) if m else ""
+            if rid:
+                case_row = by_case.setdefault(rid, {"case_id": rid, "spins_count": 0, "spent_on_spins": 0})
+                case_row["spins_count"] += 1
+                case_row["spent_on_spins"] += spend
+        elif t.type == TxType.deposit:
+            val = max(0, amt)
+            day["deposits"] += val
+            totals["deposits"] += val
+        elif t.type == TxType.withdraw:
+            val = abs(amt)
+            day["withdraws"] += val
+            totals["withdraws"] += val
+        elif t.type == TxType.win:
+            val = max(0, amt)
+            if meta.get("ticket_sell_tx_id"):
+                day["ticket_sales"] += val
+                totals["ticket_sales"] += val
+            else:
+                day["wins_stars"] += val
+                totals["wins_stars"] += val
+
+    by_day_out = []
+    for k in sorted(by_day.keys()):
+        row = by_day[k]
+        by_day_out.append({
+            "date": row["date"],
+            "spins_count": int(row["spins_count"]),
+            "spent_on_spins": int(row["spent_on_spins"]),
+            "deposits": int(row["deposits"]),
+            "wins_stars": int(row["wins_stars"]),
+            "ticket_sales": int(row["ticket_sales"]),
+            "withdraws": int(row["withdraws"]),
+            "unique_users": len(row["unique_users_set"]),
+        })
+
+    totals["unique_users"] = len(users_set)
+    return {
+        "totals": totals,
+        "by_day": by_day_out,
+        "by_case": sorted(by_case.values(), key=lambda x: x["spins_count"], reverse=True),
+    }

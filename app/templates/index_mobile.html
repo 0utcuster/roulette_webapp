@@ -60,11 +60,155 @@
     .safe-pad{ padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
     .nav{ padding-bottom: env(safe-area-inset-bottom); }
     .reel{ will-change: transform; }
-    .prize-card{ position: relative; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.08); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
-    .prize-img{ width: 100%; height: 120px; object-fit: cover; display:block; }
-    .prize-overlay{ position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); }
+    .prize-card{
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      isolation: isolate;
+      border: 1px solid rgba(255,255,255,.15);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+        radial-gradient(120% 100% at 18% 8%, rgba(255,255,255,.08), transparent 58%),
+        #12182f;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05),
+        inset 0 -20px 32px rgba(0,0,0,.22);
+    }
+    .prize-card::before{
+      content:""; position:absolute; inset:-1px; border-radius:24px; pointer-events:none; opacity:.95;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .prize-backglow{
+      position:absolute;
+      left:50%;
+      top:50px;
+      width:74%;
+      height:64px;
+      transform:translateX(-50%);
+      border-radius:999px;
+      filter: blur(14px) saturate(1.08);
+      opacity:.32;
+      pointer-events:none;
+      z-index:0;
+    }
+    .prize-img{
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      object-position: center center;
+      display:block;
+      padding: 0;
+      background: transparent;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,.18)) drop-shadow(0 2px 6px rgba(0,0,0,.14));
+    }
+    .prize-overlay{
+      position:absolute; inset:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 36%),
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.52));
+      z-index: 1;
+    }
     .prize-badge{ position:absolute; left:12px; top:12px; padding:6px 10px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); font-size: 11px; font-weight: 800; backdrop-filter: blur(10px); }
     .prize-title{ position:absolute; left:12px; right:12px; bottom:12px; font-size: 15px; font-weight: 900; letter-spacing: -0.2px; }
+    .prize-img{ position:relative; z-index:2; }
+    .prize-badge,.prize-title{ z-index:3; }
+    .prize-card.rarity-blue{ border-color: rgba(109,188,255,.35); box-shadow: inset 0 0 0 1px rgba(74,163,255,.16), inset 0 0 24px rgba(74,163,255,.10), inset 0 -18px 28px rgba(0,0,0,.18); }
+    .rarity-blue .prize-badge{ background: rgba(70,146,255,.18); border-color: rgba(109,188,255,.35); color:#cfe7ff; }
+    .rarity-blue .prize-backglow{ background: radial-gradient(ellipse at center, rgba(85,176,255,.56) 0%, rgba(85,176,255,.26) 40%, rgba(85,176,255,0) 78%); }
+    .rarity-blue.prize-card{
+      background:
+        linear-gradient(180deg, rgba(86,176,255,.18), rgba(28,74,128,.2)),
+        radial-gradient(120% 100% at 15% 10%, rgba(115,206,255,.28), transparent 62%),
+        radial-gradient(95% 90% at 86% 84%, rgba(39,105,200,.22), transparent 70%),
+        #111b33;
+    }
+    .rarity-blue .prize-overlay{
+      background:
+        linear-gradient(180deg, rgba(131,205,255,.14), rgba(131,205,255,0) 36%),
+        linear-gradient(180deg, rgba(40,103,177,.12), rgba(10,18,32,.56));
+    }
+    .prize-card.rarity-purple{ border-color: rgba(184,120,255,.42); box-shadow: inset 0 0 0 1px rgba(167,88,255,.18), inset 0 0 26px rgba(167,88,255,.10), inset 0 -18px 28px rgba(0,0,0,.18); }
+    .rarity-purple .prize-badge{ background: rgba(162,84,255,.2); border-color: rgba(184,120,255,.45); color:#ecd8ff; }
+    .rarity-purple .prize-backglow{ background: radial-gradient(ellipse at center, rgba(177,101,255,.6) 0%, rgba(177,101,255,.28) 42%, rgba(177,101,255,0) 80%); }
+    .rarity-purple.prize-card{
+      background:
+        linear-gradient(180deg, rgba(170,94,255,.2), rgba(67,30,122,.2)),
+        radial-gradient(120% 100% at 15% 10%, rgba(216,141,255,.24), transparent 62%),
+        radial-gradient(95% 90% at 86% 84%, rgba(97,42,160,.24), transparent 70%),
+        #1b1233;
+    }
+    .rarity-purple .prize-overlay{
+      background:
+        linear-gradient(180deg, rgba(214,162,255,.12), rgba(214,162,255,0) 36%),
+        linear-gradient(180deg, rgba(102,48,177,.12), rgba(12,10,23,.56));
+    }
+    .prize-card.rarity-red{ border-color: rgba(255,106,106,.45); box-shadow: inset 0 0 0 1px rgba(255,73,73,.20), inset 0 0 28px rgba(255,73,73,.10), inset 0 -18px 28px rgba(0,0,0,.18); }
+    .rarity-red .prize-badge{ background: rgba(255,92,92,.2); border-color: rgba(255,128,128,.5); color:#ffe0e0; }
+    .rarity-red .prize-backglow{ background: radial-gradient(ellipse at center, rgba(255,97,97,.62) 0%, rgba(255,97,97,.28) 42%, rgba(255,97,97,0) 82%); }
+    .rarity-red.prize-card{
+      background:
+        linear-gradient(180deg, rgba(255,102,102,.2), rgba(126,34,60,.22)),
+        radial-gradient(120% 100% at 15% 10%, rgba(255,153,153,.24), transparent 62%),
+        radial-gradient(95% 90% at 86% 84%, rgba(169,43,79,.24), transparent 70%),
+        #2a1423;
+    }
+    .rarity-red .prize-overlay{
+      background:
+        linear-gradient(180deg, rgba(255,171,171,.11), rgba(255,171,171,0) 36%),
+        linear-gradient(180deg, rgba(177,50,80,.12), rgba(16,10,16,.58));
+    }
+    .prize-card.rarity-yellow{ border-color: rgba(255,214,108,.52); box-shadow: inset 0 0 0 1px rgba(255,191,63,.22), inset 0 0 30px rgba(255,191,63,.11), inset 0 -18px 28px rgba(0,0,0,.18); }
+    .rarity-yellow .prize-badge{ background: rgba(255,188,78,.24); border-color: rgba(255,214,108,.55); color:#fff3cc; }
+    .rarity-yellow .prize-backglow{ background: radial-gradient(ellipse at center, rgba(255,210,92,.7) 0%, rgba(255,210,92,.32) 42%, rgba(255,210,92,0) 82%); }
+    .rarity-yellow.prize-card{
+      background:
+        linear-gradient(180deg, rgba(255,209,94,.22), rgba(121,76,22,.24)),
+        radial-gradient(120% 100% at 15% 10%, rgba(255,232,150,.26), transparent 62%),
+        radial-gradient(95% 90% at 86% 84%, rgba(167,112,28,.24), transparent 70%),
+        #2a2012;
+    }
+    .rarity-yellow .prize-overlay{
+      background:
+        linear-gradient(180deg, rgba(255,236,171,.13), rgba(255,236,171,0) 36%),
+        linear-gradient(180deg, rgba(190,132,37,.13), rgba(20,14,8,.56));
+    }
+    .prize-card.is-target{
+      transform: scale(1.015);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.25),
+        inset 0 0 0 3px rgba(255,211,110,.22),
+        inset 0 0 28px rgba(255,211,110,.18),
+        inset 0 -20px 30px rgba(0,0,0,.24);
+    }
+    .rarity-chip{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+      font-size:11px; font-weight:800; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.08);
+    }
+    .rarity-dot{ width:8px; height:8px; border-radius:999px; }
+    .rarity-blue .rarity-dot, .rarity-dot.rarity-blue{ background:#5fb8ff; box-shadow:0 0 10px rgba(95,184,255,.7); }
+    .rarity-purple .rarity-dot, .rarity-dot.rarity-purple{ background:#b06bff; box-shadow:0 0 10px rgba(176,107,255,.7); }
+    .rarity-red .rarity-dot, .rarity-dot.rarity-red{ background:#ff6a6a; box-shadow:0 0 10px rgba(255,106,106,.7); }
+    .rarity-yellow .rarity-dot, .rarity-dot.rarity-yellow{ background:#ffd56b; box-shadow:0 0 10px rgba(255,213,107,.8); }
+    .case-item-thumb{ position:relative; overflow:hidden; }
+    .case-item-thumb-glow{
+      position:absolute; inset:8px;
+      border-radius:999px;
+      filter: blur(10px) saturate(1.1);
+      opacity:.5;
+      pointer-events:none;
+      z-index:0;
+    }
+    .case-item-thumb img{
+      position:relative; z-index:1;
+      object-fit: contain;
+      padding: 4px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.2));
+      background: transparent;
+    }
+    .rarity-blue .case-item-thumb-glow{ background: radial-gradient(circle, rgba(95,184,255,.58), rgba(95,184,255,0) 72%); }
+    .rarity-purple .case-item-thumb-glow{ background: radial-gradient(circle, rgba(176,107,255,.62), rgba(176,107,255,0) 72%); }
+    .rarity-red .case-item-thumb-glow{ background: radial-gradient(circle, rgba(255,106,106,.62), rgba(255,106,106,0) 72%); }
+    .rarity-yellow .case-item-thumb-glow{ background: radial-gradient(circle, rgba(255,213,107,.7), rgba(255,213,107,0) 72%); }
     .roulette-card{
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
       border-color: rgba(255,255,255,.12);
@@ -199,9 +343,10 @@
               <div id="userHandle" class="text-[11px] text-white/60 truncate">@username</div>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <button id="depositBtn" class="btn btn-primary rounded-2xl font-extrabold px-3 py-2.5 w-full">Пополнить</button>
             <button id="withdrawBtn" class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold px-3 py-2.5 w-full">Вывод</button>
+            <a id="contactBtn" href="#" target="_blank" rel="noopener" class="btn rounded-2xl bg-white/10 border border-white/15 font-extrabold px-3 py-2.5 w-full text-center">Контакты</a>
           </div>
         </div>
         <div class="mt-2 text-[11px] text-white/60" id="msg">—</div>
@@ -220,6 +365,7 @@
         <div class="absolute left-4 bottom-4">
           <div class="text-[11px] uppercase tracking-wide text-white/70" id="eventBannerSubtitle">Event</div>
           <div class="text-2xl font-black leading-tight" id="eventBannerTitle">CLO DROP</div>
+          <div class="mt-1 text-xs text-white/80" id="eventShopMention">Магазин: CLO DROP</div>
         </div>
       </button>
     </header>
@@ -291,10 +437,10 @@
     <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-sm rounded-3xl p-4">
         <div class="text-sm font-extrabold">Пополнить Stars</div>
-        <div class="text-xs text-white/70 mt-1">Введите сумму (⭐)</div>
+        <div class="text-xs text-white/70 mt-1">Введите любую сумму от 1⭐</div>
         <input id="depositAmount" type="number" min="1" step="1"
                class="mt-3 w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-sm focus:outline-none"
-               placeholder="Например: 500" />
+               placeholder="Например: 1, 25, 500" />
         <div class="mt-3 flex gap-2">
           <button id="depositCancel" class="btn flex-1 rounded-2xl bg-white/10 border border-white/15 font-extrabold py-3">Отмена</button>
           <button id="depositConfirm" class="btn flex-1 rounded-2xl bg-white text-black font-extrabold py-3">Оплатить</button>
@@ -335,6 +481,10 @@
         <div class="mt-3 text-xl font-black" id="casePreviewTitle">Кейс</div>
         <div class="mt-1 text-xs text-white/70" id="casePreviewDesc">—</div>
         <div class="mt-3 flex flex-wrap gap-2" id="casePreviewPrizes"></div>
+        <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3">
+          <div class="text-xs text-white/70">Содержимое кейса (листай)</div>
+          <div id="casePreviewItems" class="mt-2 max-h-56 overflow-y-auto space-y-2"></div>
+        </div>
         <button id="casePreviewSelect" class="btn btn-primary mt-4 w-full rounded-2xl font-extrabold py-3">Выбрать кейс</button>
       </div>
     </div>
@@ -392,6 +542,13 @@
           <div class="rounded-2xl bg-white/5 border border-white/15 p-3">
             <div class="text-xs font-extrabold">Прогресс до вывода</div>
             <div id="progressList" class="mt-2 space-y-3"></div>
+          </div>
+          <div class="mt-4 rounded-2xl bg-white/5 border border-white/15 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-extrabold">Продажа тикетов</div>
+              <div class="text-[11px] text-white/60" id="ticketSellHint">—</div>
+            </div>
+            <div id="ticketLotsList" class="mt-2 space-y-2"></div>
           </div>
           <div id="inventoryList" class="mt-4 space-y-2"></div>
         </div>

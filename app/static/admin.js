@@ -100,11 +100,12 @@ function closeRefDetails() {
 }
 
 function defaultPrize() {
-  return { code: "new_prize", title: "Новый приз", type: "item", amount: 1, weight: 1, is_enabled: 1 };
+  return { code: "new_prize", title: "Новый приз", type: "item", amount: 1, weight: 1, is_enabled: 1, rarity: "blue" };
 }
 
 function renderPrizeRow(prize, caseId, idx) {
-  return `<div class="rounded-2xl border border-white/10 bg-white/5 p-2 grid grid-cols-1 sm:grid-cols-6 gap-2" data-prize-row="${idx}">
+  const rarity = ["blue","purple","red","yellow"].includes(String(prize.rarity || "")) ? String(prize.rarity) : "blue";
+  return `<div class="rounded-2xl border border-white/10 bg-white/5 p-2 grid grid-cols-1 sm:grid-cols-7 gap-2" data-prize-row="${idx}">
     <input data-field="code" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${esc(prize.code || "")}" placeholder="code"/>
     <input data-field="title" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${esc(prize.title || "")}" placeholder="title"/>
     <select data-field="type" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs">
@@ -114,6 +115,12 @@ function renderPrizeRow(prize, caseId, idx) {
     </select>
     <input data-field="amount" type="number" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${Number(prize.amount || 0)}" placeholder="amount"/>
     <input data-field="weight" type="number" min="0" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${Number(prize.weight || 0)}" placeholder="weight"/>
+    <select data-field="rarity" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs">
+      <option value="blue" ${rarity === "blue" ? "selected" : ""}>Синий</option>
+      <option value="purple" ${rarity === "purple" ? "selected" : ""}>Фиолетовый</option>
+      <option value="red" ${rarity === "red" ? "selected" : ""}>Красный</option>
+      <option value="yellow" ${rarity === "yellow" ? "selected" : ""}>Жёлтый</option>
+    </select>
     <div class="flex items-center justify-between gap-2">
       <label class="text-xs text-white/70 flex items-center gap-2"><input data-field="is_enabled" type="checkbox" ${prize.is_enabled ? "checked" : ""}/>on</label>
       <button data-remove-prize="${caseId}:${idx}" class="rounded-xl bg-red-500/20 border border-red-300/20 px-2 py-1 text-xs">Удалить</button>
@@ -140,13 +147,15 @@ function renderCaseEditor(c) {
 }
 
 let CASES = [];
-let MEDIA_CONFIG = { event: {}, roulettes: {}, ticket_targets: {} };
+let MEDIA_CONFIG = { event: {}, roulettes: {}, ticket_targets: {}, economy: {}, contact: {} };
 
 function ensureMediaShape() {
   if (!MEDIA_CONFIG || typeof MEDIA_CONFIG !== "object") MEDIA_CONFIG = {};
   if (!MEDIA_CONFIG.event || typeof MEDIA_CONFIG.event !== "object") MEDIA_CONFIG.event = {};
   if (!MEDIA_CONFIG.roulettes || typeof MEDIA_CONFIG.roulettes !== "object") MEDIA_CONFIG.roulettes = {};
   if (!MEDIA_CONFIG.ticket_targets || typeof MEDIA_CONFIG.ticket_targets !== "object") MEDIA_CONFIG.ticket_targets = {};
+  if (!MEDIA_CONFIG.economy || typeof MEDIA_CONFIG.economy !== "object") MEDIA_CONFIG.economy = {};
+  if (!MEDIA_CONFIG.contact || typeof MEDIA_CONFIG.contact !== "object") MEDIA_CONFIG.contact = {};
 }
 
 function collectItemCodesFromCases() {
@@ -243,8 +252,13 @@ function renderMediaEditor() {
   ensureMediaShape();
   $("eventTitle").value = MEDIA_CONFIG.event.title || "";
   $("eventSubtitle").value = MEDIA_CONFIG.event.subtitle || "";
+  $("eventShopMention").value = MEDIA_CONFIG.event.shop_mention || "";
   $("eventText").value = MEDIA_CONFIG.event.text || "";
   $("eventImage").value = MEDIA_CONFIG.event.image || "";
+  $("contactLabel").value = MEDIA_CONFIG.contact.label || "Контакты";
+  $("contactUrl").value = MEDIA_CONFIG.contact.url || "";
+  $("ticketSellPercent").value = Number(MEDIA_CONFIG.economy.ticket_sell_percent ?? 50);
+  $("nearTargetBoostPercent").value = Number(MEDIA_CONFIG.economy.near_target_ticket_boost_percent ?? 0);
   $("eventImagePreview").src = MEDIA_CONFIG.event.image || "";
 
   if ($("eventImage")) $("eventImage").oninput = () => {
@@ -277,8 +291,13 @@ async function saveMediaConfig() {
   ensureMediaShape();
   MEDIA_CONFIG.event.title = ($("eventTitle")?.value || "").trim();
   MEDIA_CONFIG.event.subtitle = ($("eventSubtitle")?.value || "").trim();
+  MEDIA_CONFIG.event.shop_mention = ($("eventShopMention")?.value || "").trim();
   MEDIA_CONFIG.event.text = ($("eventText")?.value || "").trim();
   MEDIA_CONFIG.event.image = ($("eventImage")?.value || "").trim();
+  MEDIA_CONFIG.contact.label = ($("contactLabel")?.value || "").trim();
+  MEDIA_CONFIG.contact.url = ($("contactUrl")?.value || "").trim();
+  MEDIA_CONFIG.economy.ticket_sell_percent = Math.max(0, Math.min(100, parseInt($("ticketSellPercent")?.value || "50", 10) || 0));
+  MEDIA_CONFIG.economy.near_target_ticket_boost_percent = Math.max(0, Math.min(100, parseInt($("nearTargetBoostPercent")?.value || "0", 10) || 0));
 
   const targets = {};
   Array.from(document.querySelectorAll("[data-target-code]")).forEach((el) => {
@@ -354,6 +373,7 @@ function readCasesFromDom() {
         type: (get("type")?.value || "item").trim(),
         amount: parseInt(get("amount")?.value || "0", 10) || 0,
         weight: Math.max(0, parseInt(get("weight")?.value || "0", 10) || 0),
+        rarity: (get("rarity")?.value || "blue").trim(),
         is_enabled: get("is_enabled")?.checked ? 1 : 0,
       };
     });
@@ -381,6 +401,58 @@ async function saveCases() {
   await loadCases();
 }
 
+function statCard(label, value) {
+  return `<div class="rounded-2xl bg-white/5 border border-white/15 p-3">
+    <div class="text-[11px] text-white/60">${esc(label)}</div>
+    <div class="font-extrabold text-sm mt-1">${esc(String(value ?? 0))}</div>
+  </div>`;
+}
+
+async function loadStats() {
+  const u = new URL("/api/admin/stats", window.location.origin);
+  const from = $("statsFrom")?.value || "";
+  const to = $("statsTo")?.value || "";
+  if (from) u.searchParams.set("from", from);
+  if (to) u.searchParams.set("to", to);
+  const data = await api(u.toString().replace(window.location.origin, ""));
+  const t = data.totals || {};
+  $("statsTotals").innerHTML = [
+    statCard("Спины", t.spins_count || 0),
+    statCard("Траты на спины", `${t.spent_on_spins || 0}⭐`),
+    statCard("Пополнения", `${t.deposits || 0}⭐`),
+    statCard("Выиграно Stars", `${t.wins_stars || 0}⭐`),
+    statCard("Продажа тикетов", `${t.ticket_sales || 0}⭐`),
+    statCard("Уникальные игроки", t.unique_users || 0),
+  ].join("");
+
+  $("statsByCase").innerHTML = (data.by_case || []).map((x) => `
+    <div class="rounded-2xl bg-white/5 border border-white/15 p-3 text-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="font-extrabold">${esc(x.case_id || "—")}</div>
+        <div class="text-xs text-white/70">спины: ${Number(x.spins_count || 0)}</div>
+      </div>
+      <div class="text-xs text-white/60 mt-1">траты: ${Number(x.spent_on_spins || 0)}⭐</div>
+    </div>
+  `).join("") || `<div class="text-sm text-white/70">Нет данных.</div>`;
+
+  $("statsByDay").innerHTML = (data.by_day || []).map((x) => `
+    <div class="rounded-2xl bg-white/5 border border-white/15 p-3 text-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="font-extrabold">${esc(x.date || "—")}</div>
+        <div class="text-xs text-white/70">игроков: ${Number(x.unique_users || 0)}</div>
+      </div>
+      <div class="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-white/75">
+        <div>Спины: ${Number(x.spins_count || 0)}</div>
+        <div>Траты: ${Number(x.spent_on_spins || 0)}⭐</div>
+        <div>Пополнения: ${Number(x.deposits || 0)}⭐</div>
+        <div>Выигрыши: ${Number(x.wins_stars || 0)}⭐</div>
+        <div>Продажа тикетов: ${Number(x.ticket_sales || 0)}⭐</div>
+        <div>Выводы: ${Number(x.withdraws || 0)}⭐</div>
+      </div>
+    </div>
+  `).join("") || `<div class="text-sm text-white/70">Нет данных.</div>`;
+}
+
 async function loadAll() {
   await loadCases();
   await loadMediaConfig();
@@ -401,6 +473,7 @@ async function loadAll() {
   `).join("");
 
   if ($("refSummary")) await loadReferrals();
+  if ($("statsTotals")) await loadStats();
 }
 
 async function applyAdjust() {
@@ -425,4 +498,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("loadRefs")?.addEventListener("click", () => loadReferrals().then(() => setMsg("Рефералы обновлены")).catch((e) => setMsg(e.message || "Ошибка")));
   $("refDetailsClose")?.addEventListener("click", closeRefDetails);
   ["refSearch", "refFrom", "refTo"].forEach((id) => $(id)?.addEventListener("change", () => loadReferrals().catch(() => {})));
+  $("loadStats")?.addEventListener("click", () => loadStats().then(() => setMsg("Статистика обновлена")).catch((e) => setMsg(e.message || "Ошибка")));
+  ["statsFrom", "statsTo"].forEach((id) => $(id)?.addEventListener("change", () => loadStats().catch(() => {})));
 });

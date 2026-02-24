@@ -34,6 +34,12 @@ async function loadRouletteImages(){
   ROULETTE_IMAGES = await res.json();
   return ROULETTE_IMAGES;
 }
+let CASES_API_CACHE=null;
+async function loadCasesApi(){
+  if(CASES_API_CACHE) return CASES_API_CACHE;
+  CASES_API_CACHE = await api("/api/cases", { method:"GET" });
+  return CASES_API_CACHE;
+}
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randint(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
@@ -75,6 +81,16 @@ function keyBadge(key){
   return "Приз";
 }
 
+function rarityValue(r){ return ({ blue:1, purple:2, red:3, yellow:4 }[String(r||"blue").toLowerCase()] || 1); }
+function rarityKey(r){
+  const x = String(r || "blue").toLowerCase();
+  return ["blue","purple","red","yellow"].includes(x) ? x : "blue";
+}
+function rarityLabel(r){
+  return ({ blue:"Синий", purple:"Фиолетовый", red:"Красный", yellow:"Жёлтый" })[rarityKey(r)];
+}
+function rarityCss(r){ return `rarity-${rarityKey(r)}`; }
+
 function isHighTierPrize(key){
   const k = String(key || "");
   return [
@@ -88,7 +104,7 @@ function isHighTierPrize(key){
   ].includes(k);
 }
 
-let state={ rouletteId:null, rouletteCost:0, currentCase:null, cases:[] };
+let state={ rouletteId:null, rouletteCost:0, currentCase:null, cases:[], uiConfig:null };
 let modalOpenCount = 0;
 let lockedScrollY = 0;
 
@@ -178,10 +194,27 @@ function setupEventBanner(cfg){
   const e = cfg?.event || {};
   if($("eventBannerTitle")) $("eventBannerTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
   if($("eventBannerSubtitle")) $("eventBannerSubtitle").textContent = e.subtitle || "Праздничный дроп";
+  if($("eventShopMention")) $("eventShopMention").textContent = e.shop_mention ? `Магазин: ${e.shop_mention}` : "Магазин: CLO DROP";
   if($("eventBannerImg") && e.image) $("eventBannerImg").src = e.image;
   if($("eventModalTitle")) $("eventModalTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
   if($("eventModalText")) $("eventModalText").textContent = e.text || "Открывайте кейсы и забирайте праздничные награды.";
   if($("eventModalImg") && e.image) $("eventModalImg").src = e.image;
+}
+
+function setupContactButton(cfg){
+  const c = cfg?.contact || {};
+  const btn = $("contactBtn");
+  if(!btn) return;
+  const url = (c.url || "").trim();
+  const label = (c.label || "").trim() || "Контакты";
+  btn.textContent = label;
+  if(url){
+    btn.href = url;
+    btn.classList.remove("opacity-50","pointer-events-none");
+  }else{
+    btn.href = "#";
+    btn.classList.add("opacity-50","pointer-events-none");
+  }
 }
 
 function setupProfileIdentity(){
@@ -238,23 +271,106 @@ async function loadInventory(){
         <div class="mt-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
           <div class="h-full ${idx % 2 === 0 ? "bg-gradient-to-r from-amber-300 to-orange-400" : "bg-gradient-to-r from-cyan-300 to-blue-400"}" style="width:${Math.max(0, Math.min(100, Number(p.percent || 0)))}%"></div>
         </div>
-        <div class="mt-1 text-[11px] text-white/60">Осталось: ${Math.max(0, Number(p.left || 0))}</div>
+        <div class="mt-1 text-[11px] ${
+          Number(p.left||0)===1 ? "text-rose-200" :
+          (Number(p.left||0)===2 || Number(p.left||0)===3) ? "text-amber-200" :
+          "text-white/60"
+        }">
+          ${
+            Number(p.left||0)===1 ? "Финишный тикет выпадает реже (маленький шанс)" :
+            (Number(p.left||0)===2 || Number(p.left||0)===3) ? `Осталось ${Math.max(0, Number(p.left || 0))}: шанс на тикет повышен` :
+            `Осталось: ${Math.max(0, Number(p.left || 0))}`
+          }
+        </div>
       </div>
     `).join("") : `<div class="text-[11px] text-white/60">Пока нет прогресса. Открывайте кейсы.</div>`;
+  }
+
+  const hint = $("ticketSellHint");
+  if(hint) hint.textContent = `Выкуп: ${Number(data?.economy?.ticket_sell_percent || 50)}% от стоимости кейса`;
+  const lotsBox = $("ticketLotsList");
+  if(lotsBox){
+    const lots = data.lots || [];
+    lotsBox.innerHTML = lots.length ? lots.slice(0,60).map((lot)=>`
+      <div class="rounded-2xl bg-black/20 border border-white/10 p-2.5">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="font-extrabold text-sm truncate">${esc(keyTitle(lot.code))}</div>
+            <div class="mt-1 flex flex-wrap gap-1">
+              <span class="rarity-chip ${rarityCss(lot.rarity)}"><span class="rarity-dot ${rarityCss(lot.rarity)}"></span>${esc(rarityLabel(lot.rarity))}</span>
+              <span class="rarity-chip">x${Number(lot.left || 0)}</span>
+              ${lot.case_id ? `<span class="rarity-chip">${esc(lot.case_id)} · ${Number(lot.case_cost||0)}⭐</span>` : ``}
+            </div>
+          </div>
+          <button data-sell-tx="${Number(lot.tx_id)}" class="btn rounded-xl bg-emerald-400/15 border border-emerald-200/20 px-3 py-2 text-xs font-extrabold whitespace-nowrap">
+            Продать за ${Number(lot.sell_price_total || 0)}⭐
+          </button>
+        </div>
+      </div>
+    `).join("") : `<div class="text-[11px] text-white/60">Пока нет тикетов, которые можно продать.</div>`;
+
+    Array.from(lotsBox.querySelectorAll("[data-sell-tx]")).forEach((btn)=>{
+      btn.addEventListener("click", async ()=>{
+        const txId = parseInt(btn.dataset.sellTx || "0", 10);
+        if(!txId) return;
+        btn.disabled = true;
+        try{
+          const res = await api("/api/tickets/sell", { method:"POST", body: JSON.stringify({ tx_id: txId }) });
+          setBalance(res.balance);
+          setTickets(res.tickets_sneakers, res.tickets_bracelet);
+          setMsg(`✅ Тикеты проданы. Начислено ${res.credited}⭐`);
+          await loadInventory();
+        }catch(e){
+          setMsg(`Ошибка продажи: ${e.message || "Ошибка"}`);
+          btn.disabled = false;
+        }
+      });
+    });
   }
   return data;
 }
 
 function openCasePreview(c){
   const modal=$("casePreviewModal"); if(!modal) return;
-  const items=c.items||{};
-  const firstKey=Object.keys(items)[0];
-  const thumb=c.avatar || (firstKey ? ((items[firstKey]||[])[0] || "") : "");
+  const prizes=Array.isArray(c.prizes) ? [...c.prizes] : [];
+  prizes.sort((a,b)=>{
+    const rv = rarityValue(b.rarity) - rarityValue(a.rarity);
+    if(rv) return rv;
+    return (Number(b.weight||0) - Number(a.weight||0));
+  });
+  const first = prizes[0] || null;
+  const thumb=c.avatar || (first ? ((first.images||[])[0] || "") : "");
   $("casePreviewImg").src=thumb || "";
   $("casePreviewTitle").textContent=c.title || c.id;
   $("casePreviewDesc").textContent=c.desc || "Открой кейс и забери мощный дроп.";
   $("casePreviewPrice").textContent=`${c.cost}⭐`;
-  $("casePreviewPrizes").innerHTML = Object.keys(items).slice(0,6).map(k=>`<span class="case-tag">${esc(keyTitle(k))}</span>`).join("") || `<span class="case-tag">Без призов</span>`;
+  $("casePreviewPrizes").innerHTML = prizes.slice(0,6).map(p=>`<span class="case-tag ${rarityCss(p.rarity)}">${esc(keyTitle(p.code))}</span>`).join("") || `<span class="case-tag">Без призов</span>`;
+  const totalWeight = prizes.reduce((s,p)=>s + Math.max(0, Number(p.weight || 0)), 0);
+  const box = $("casePreviewItems");
+  if(box){
+    box.innerHTML = prizes.length ? prizes.map((p)=>{
+      const chance = totalWeight > 0 ? ((Math.max(0, Number(p.weight||0)) / totalWeight) * 100) : 0;
+      const img = (p.images||[])[0] || "";
+      return `
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-2 flex items-center gap-3 ${rarityCss(p.rarity)}">
+          <div class="case-item-thumb w-14 h-14 rounded-xl overflow-hidden border border-white/10 bg-white/5 shrink-0">
+            <div class="case-item-thumb-glow"></div>
+            ${img ? `<img src="${img}" class="w-full h-full object-cover"/>` : ``}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-extrabold text-sm truncate">${esc(keyTitle(p.code))}</div>
+            <div class="mt-1 flex flex-wrap gap-1">
+              <span class="rarity-chip ${rarityCss(p.rarity)}"><span class="rarity-dot ${rarityCss(p.rarity)}"></span>${esc(rarityLabel(p.rarity))}</span>
+              <span class="rarity-chip">${esc(keyBadge(p.code))}</span>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[11px] text-white/60">Шанс</div>
+            <div class="font-extrabold text-xs">${chance.toFixed(chance < 1 ? 2 : 1)}%</div>
+          </div>
+        </div>`;
+    }).join("") : `<div class="text-xs text-white/60">В кейсе нет доступных призов.</div>`;
+  }
   $("casePreviewSelect").onclick=async ()=>{
     await selectCase(c, {silent:false});
     closeModal("casePreviewModal");
@@ -297,23 +413,26 @@ async function buildRouletteGrid(){
   const grid=$("roulette-grid");
   if(!grid) return;
 
-  const imgs=await loadRouletteImages();
-  const list=Object.keys(imgs.roulettes||{}).map(id=>({
-    id,
-    title: imgs.roulettes[id].title||id,
-    cost: imgs.roulettes[id].spin_cost||150,
-    desc: imgs.roulettes[id].desc || "Выбери кейс и забирай лучший дроп",
-    avatar: imgs.roulettes[id].avatar || "",
-    items: imgs.roulettes[id].items||{}
+  const cfg = await loadCasesApi();
+  state.uiConfig = cfg;
+  const list = (cfg.items || []).map((c)=>({
+    id: c.id,
+    title: c.title || c.id,
+    cost: c.spin_cost || 150,
+    desc: c.desc || "Выбери кейс и забирай лучший дроп",
+    avatar: c.avatar || "",
+    prizes: Array.isArray(c.prizes) ? c.prizes : [],
   }));
   state.cases=list;
 
   grid.innerHTML="";
   for(const c of list){
-    const firstKey = Object.keys(c.items||{})[0];
-    const thumb = c.avatar || (firstKey ? ((c.items[firstKey]||[])[0] || "") : "");
+    const firstPrize = (c.prizes || [])[0];
+    const thumb = c.avatar || ((firstPrize?.images || [])[0] || "");
+    const topRarity = (c.prizes || []).reduce((acc,p)=>Math.max(acc, rarityValue(p.rarity)), 1);
+    const frameRarity = ({1:"blue",2:"purple",3:"red",4:"yellow"})[topRarity] || "blue";
     const btn=document.createElement("button");
-    btn.className="roulette-card text-left rounded-3xl border border-white/15 bg-white/5 overflow-hidden relative p-2";
+    btn.className=`roulette-card text-left rounded-3xl border border-white/15 bg-white/5 overflow-hidden relative p-2 ${rarityCss(frameRarity)}`;
     btn.innerHTML=`
       <div class="case-cover">
         ${thumb?`<img src="${thumb}" alt="${esc(c.title)}"/>`:``}
@@ -340,24 +459,26 @@ async function buildRouletteGrid(){
 async function buildReel(rouletteId, reelId="reelModal"){
   const reel=$(reelId); if(!reel) return;
 
-  const imgs=await loadRouletteImages();
-  const itemsMap=imgs.roulettes?.[rouletteId]?.items||{};
-  const keys=Object.keys(itemsMap).filter(k=>itemsMap[k] && itemsMap[k].length);
-  if(!keys.length){
+  const c = state.cases.find(x=>x.id===rouletteId);
+  const prizes = (c?.prizes || []).filter(p => (p.images||[]).length);
+  if(!prizes.length){
     reel.innerHTML="";
     return;
   }
 
   reel.innerHTML="";
   for(let i=0;i<40;i++){
-    const key=keys[i%keys.length];
+    const prize=prizes[i%prizes.length];
+    const key=prize.code;
     const el=document.createElement("div");
-    el.className="prize-card";
+    el.className=`prize-card ${rarityCss(prize.rarity)}`;
     el.dataset.key=key;
+    el.dataset.rarity=rarityKey(prize.rarity);
     el.innerHTML=`
-      <img class="prize-img" src="${pick(itemsMap[key])}" />
+      <div class="prize-backglow"></div>
+      <img class="prize-img" src="${pick(prize.images)}" />
       <div class="prize-overlay"></div>
-      <div class="prize-badge">${keyBadge(key)}</div>
+      <div class="prize-badge">${rarityLabel(prize.rarity)} · ${keyBadge(key)}</div>
       <div class="prize-title">${keyTitle(key)}</div>
     `;
     reel.appendChild(el);
@@ -366,13 +487,20 @@ async function buildReel(rouletteId, reelId="reelModal"){
   reel.style.transform="translateY(0px)";
 }
 
-async function animateToPrize(prizeKey, reelId="reelModal"){
+async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
   const reel=$(reelId);
   const items=[...reel.querySelectorAll(".prize-card")];
   if(!items.length) return;
 
   const cand=[];
-  items.forEach((el,i)=>{ if(el.dataset.key===prizeKey) cand.push(i); });
+  items.forEach((el,i)=>{
+    if(el.dataset.key!==prizeKey) return;
+    if(prizeRarity && el.dataset.rarity && el.dataset.rarity !== rarityKey(prizeRarity)) return;
+    cand.push(i);
+  });
+  if(!cand.length && prizeRarity){
+    items.forEach((el,i)=>{ if(el.dataset.key===prizeKey) cand.push(i); });
+  }
   const targetIndex = cand.length ? cand[Math.floor(Math.random()*cand.length)] : 10;
 
   const containerHeight = reel.parentElement.clientHeight;
@@ -423,6 +551,8 @@ async function animateToPrize(prizeKey, reelId="reelModal"){
         reel.style.transform = `translateY(${targetY}px)`;
         reel.style.filter = "blur(0px) saturate(1)";
         if (wrap) wrap.style.boxShadow = "";
+        items.forEach((el)=>el.classList.remove("is-target"));
+        targetEl?.classList.add("is-target");
         resolve();
       }
     };
@@ -562,7 +692,7 @@ async function doSpin(){
       method:"POST",
       body: JSON.stringify({ roulette_id: state.rouletteId })
     });
-    await animateToPrize(res.prize_key, "reelModal");
+    await animateToPrize(res.prize_key, "reelModal", res?.prize?.rarity);
 
     $("spinResult")?.classList.remove("hidden");
     if($("spinText")) $("spinText").textContent = res.message || "—";
@@ -576,7 +706,7 @@ async function doSpin(){
     spinModal?.classList.add("shadow-[0_0_40px_rgba(255,190,95,.35)]");
     setTimeout(()=>spinModal?.classList.remove("shadow-[0_0_40px_rgba(255,190,95,.35)]"), 900);
     openResultOverlay({
-      badge:"Выигрыш",
+      badge:`Выигрыш · ${rarityLabel(res?.prize?.rarity)}`,
       title:keyTitle(res.prize_key || ""),
       text:res.message || "Результат начислен",
       primary:"Продолжить"
@@ -681,9 +811,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     });
 
     await buildRouletteGrid();
-    const cfg=await loadRouletteImages();
+    const cfg = state.uiConfig || await loadCasesApi();
     setupProfileIdentity();
     setupEventBanner(cfg);
+    setupContactButton(cfg);
     setupOnlineCounter();
     setupLiveWinsFeed();
     await loadMe();
