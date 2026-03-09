@@ -550,7 +550,10 @@ async function animateToPrize(prizeKey, reelId="reelModal", prizeRarity=null){
   if(!cand.length && prizeRarity){
     items.forEach((el,i)=>{ if(el.dataset.key===prizeKey) cand.push(i); });
   }
-  const targetIndex = cand.length ? cand[Math.floor(Math.random()*cand.length)] : 10;
+  const edgeGuard = 4;
+  const safeCand = cand.filter((i)=>i > edgeGuard && i < (items.length - edgeGuard - 1));
+  const pool = safeCand.length ? safeCand : cand;
+  const targetIndex = pool.length ? pool[Math.floor(Math.random()*pool.length)] : Math.floor(items.length / 2);
 
   const containerHeight = reel.parentElement.clientHeight;
   const targetEl = items[targetIndex];
