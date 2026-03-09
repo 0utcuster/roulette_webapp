@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ring" x1="20" y1="18" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2F6FC"/>
+      <stop offset="0.28" stop-color="#A3AFBF"/>
+      <stop offset="0.52" stop-color="#EAF0F7"/>
+      <stop offset="0.76" stop-color="#8D99A9"/>
+      <stop offset="1" stop-color="#F7FAFF"/>
+    </linearGradient>
+    <linearGradient id="cross" x1="34" y1="30" x2="97" y2="101" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F5FAFF"/>
+      <stop offset="0.34" stop-color="#A6B3C4"/>
+      <stop offset="0.65" stop-color="#EDF3FA"/>
+      <stop offset="1" stop-color="#8B98A9"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="58" stroke="url(#ring)" stroke-width="8"/>
+  <circle cx="64" cy="64" r="48" stroke="url(#ring)" stroke-opacity="0.74" stroke-width="2"/>
+  <path d="M34 35H46L65 58L86 35H97L71 65L98 95H87L65 71L43 95H32L59 65L34 35Z" fill="url(#cross)"/>
+  <path d="M34 35H46L65 58L86 35H97L71 65L98 95H87L65 71L43 95H32L59 65L34 35Z" stroke="#F2F7FF" stroke-opacity="0.2"/>
+</svg>

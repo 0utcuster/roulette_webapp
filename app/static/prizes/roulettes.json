@@ -1,15 +1,15 @@
 {
   "event": {
-    "title": "ИВЕНТ К 23 ФЕВРАЛЯ",
-    "subtitle": "Подпишись на канал и следи за дропами",
-    "shop_mention": "villageweb.ru",
-    "text": "Подпишитесь на наш Telegram-канал: там анонсы дропов, новые кейсы, розыгрыши и промокоды. Нажмите кнопку ниже и вступайте в канал.",
+    "title": "MADESIX",
+    "subtitle": "Подписывайтесь на канал и следите за релизами",
+    "shop_mention": "MADESIX",
+    "text": "В Telegram-канале мы публикуем анонсы дропов, новые кейсы, розыгрыши и промокоды.",
     "image": "/static/prizes/r4/ticket_sneakers_3.svg",
     "cta_label": "Подписаться на канал",
     "cta_url": "https://t.me/+73LNTZZwCodmMzcy"
   },
   "contact": {
-    "label": "Контакты",
+    "label": "Менеджер",
     "url": "https://t.me/managerbalenciaga"
   },
   "economy": {
@@ -57,7 +57,7 @@
       }
     },
     "r4": {
-      "title": "LIMITED DROP 🔥",
+      "title": "LIMITED DROP",
       "spin_cost": 299,
       "avatar": "/static/prizes/r4/ticket_sneakers_3.svg",
       "desc": "Лимитка с редкими дропами и увеличенными наградами.",
@@ -71,7 +71,7 @@
       }
     },
     "r5": {
-      "title": "GOLD VIBE ✨",
+      "title": "GOLD VIBE",
       "spin_cost": 279,
       "avatar": "/static/prizes/bracelet_1.svg",
       "desc": "Золотой вайб: украшения, сертификат и жирные скидки.",
@@ -84,7 +84,7 @@
       }
     },
     "r6": {
-      "title": "ULTIMATE STREET BOX 🚀",
+      "title": "ULTIMATE STREET BOX",
       "spin_cost": 329,
       "avatar": "/static/prizes/r6/ticket_sneakers_3.svg",
       "desc": "Ультимативный стрит-бокс с мощными предметами.",
@@ -97,7 +97,7 @@
       }
     },
     "r7": {
-      "title": "STAR JACKPOT 🎰",
+      "title": "STAR JACKPOT",
       "spin_cost": 199,
       "avatar": "/static/prizes/stars_1000.svg",
       "desc": "Максимальный шанс на крупные звездные призы.",
@@ -111,7 +111,7 @@
       }
     },
     "r8": {
-      "title": "SECRET LEVEL 🔐",
+      "title": "SECRET LEVEL",
       "spin_cost": 289,
       "avatar": "/static/prizes/r1/ticket_sneakers_3.svg",
       "desc": "Секретный кейс: премиальные призы и VIP-ключ.",

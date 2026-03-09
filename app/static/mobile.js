@@ -2,6 +2,20 @@ const tg = window.Telegram?.WebApp || null;
 
 function $(id){ return document.getElementById(id); }
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+function initAppLikeViewportLock(){
+  // Disable pinch/double-tap zoom in mobile webviews for app-like feel.
+  ["gesturestart","gesturechange","gestureend"].forEach((evt)=>{
+    document.addEventListener(evt, (e)=>e.preventDefault(), { passive:false });
+  });
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", (e)=>{
+    const now = Date.now();
+    if(now - lastTouchEnd < 280) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive:false });
+}
+
 function esc(s){
   return String(s)
     .replaceAll("&","&amp;")
@@ -45,32 +59,32 @@ function randint(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
 function keyTitle(key){
   const m={
-    shoes:"👟 Обувь",
-    women_shoes:"👟 Женская обувь",
-    limited_shoes:"👟 Лимит обувь",
-    hoodie:"🧥 Толстовка",
-    women_hoodie:"🧥 Женские толстовки",
-    exclusive_hoodie:"🧥 Эксклюзив худи",
-    tshirt:"👕 Футболка",
-    jeans:"👖 Джинсы",
-    bracelet:"📿 Браслет",
-    cert_3000:"🎁 Сертификат 3000₽",
-    full_look:"🛍️ Полный образ",
-    vip_key:"🔐 VIP-ключ",
-    stars_0:"⭐ 0",
-    stars_50:"⭐ 50",
-    stars_100:"⭐ 100",
-    stars_200:"⭐ 200",
-    stars_300:"⭐ 300",
-    discount_10:"💸 10%",
-    discount_15:"💸 15%",
-    discount_20:"💸 20%",
-    discount_25:"💸 25%",
-    discount_30:"💸 30%",
-    discount_50:"💸 50%",
-    stars_150:"⭐ 150",
-    stars_500:"⭐ 500",
-    stars_1000:"⭐ 1000",
+    shoes:"Обувь",
+    women_shoes:"Женская обувь",
+    limited_shoes:"Лимит обувь",
+    hoodie:"Толстовка",
+    women_hoodie:"Женские толстовки",
+    exclusive_hoodie:"Эксклюзив худи",
+    tshirt:"Футболка",
+    jeans:"Джинсы",
+    bracelet:"Браслет",
+    cert_3000:"Сертификат 3000₽",
+    full_look:"Полный образ",
+    vip_key:"VIP-ключ",
+    stars_0:"0 Stars",
+    stars_50:"50 Stars",
+    stars_100:"100 Stars",
+    stars_200:"200 Stars",
+    stars_300:"300 Stars",
+    discount_10:"Скидка 10%",
+    discount_15:"Скидка 15%",
+    discount_20:"Скидка 20%",
+    discount_25:"Скидка 25%",
+    discount_30:"Скидка 30%",
+    discount_50:"Скидка 50%",
+    stars_150:"150 Stars",
+    stars_500:"500 Stars",
+    stars_1000:"1000 Stars",
   };
   return m[key] || String(key || "").replaceAll("_"," ");
 }
@@ -113,6 +127,126 @@ let modalOpenCount = 0;
 let lockedScrollY = 0;
 let reelAnimRaf = 0;
 let reelAnimRunId = 0;
+const BOOT = {
+  imagesRatio: 0,
+  modelRatio: 0,
+  modelReady: false,
+  modelObserved: false,
+  modelWaiters: [],
+  hidden: false,
+};
+
+function bootSetProgress(ratio, text=""){
+  const clamped = Math.max(0, Math.min(1, Number(ratio || 0)));
+  const fill = $("appBootLoaderFill");
+  const pct = $("appBootLoaderPercent");
+  const txt = $("appBootLoaderText");
+  if(fill) fill.style.width = `${(clamped * 100).toFixed(1)}%`;
+  if(pct) pct.textContent = `${Math.round(clamped * 100)}%`;
+  if(txt && text) txt.textContent = text;
+}
+
+function bootUpdate(text=""){
+  const ratio = (BOOT.imagesRatio * 0.65) + (BOOT.modelRatio * 0.35);
+  bootSetProgress(ratio, text);
+}
+
+function bootHide(){
+  if(BOOT.hidden) return;
+  BOOT.hidden = true;
+  const box = $("appBootLoader");
+  if(!box) return;
+  box.classList.add("hidden");
+  setTimeout(()=>box.remove(), 420);
+}
+
+function bootResolveModelWaiters(){
+  if(!BOOT.modelWaiters.length) return;
+  const waiters = [...BOOT.modelWaiters];
+  BOOT.modelWaiters = [];
+  waiters.forEach((fn)=>{ try{ fn(); }catch{} });
+}
+
+function bootWaitForModel(timeoutMs=22000){
+  if(BOOT.modelReady) return Promise.resolve();
+  return new Promise((resolve)=>{
+    const timer = setTimeout(()=>{
+      BOOT.modelRatio = 1;
+      BOOT.modelReady = true;
+      bootUpdate("Фото и 3D подготовлены");
+      resolve();
+    }, timeoutMs);
+    BOOT.modelWaiters.push(()=>{
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+function bootCollectImageUrls(cfg){
+  const set = new Set();
+  const add = (x)=>{
+    if(!x || typeof x !== "string") return;
+    const v = x.trim();
+    if(!v) return;
+    set.add(v);
+  };
+  Array.from(document.querySelectorAll("img[src]")).forEach((img)=>add(img.getAttribute("src")));
+  if(cfg?.event?.image) add(cfg.event.image);
+  const items = Array.isArray(cfg?.items) ? cfg.items : [];
+  for(const c of items){
+    add(c.avatar);
+    const prizes = Array.isArray(c.prizes) ? c.prizes : [];
+    for(const p of prizes){
+      const imgs = Array.isArray(p.images) ? p.images : [];
+      imgs.forEach(add);
+    }
+  }
+  return [...set];
+}
+
+function bootPreloadImages(urls){
+  if(!Array.isArray(urls) || !urls.length){
+    BOOT.imagesRatio = 1;
+    bootUpdate("Загружаем 3D модель…");
+    return Promise.resolve();
+  }
+  let done = 0;
+  const total = urls.length;
+  const onDone = ()=>{
+    done += 1;
+    BOOT.imagesRatio = Math.max(0, Math.min(1, done / total));
+    bootUpdate(`Загрузка фото: ${done}/${total}`);
+  };
+  const tasks = urls.map((url)=>new Promise((resolve)=>{
+    const img = new Image();
+    img.onload = ()=>{ onDone(); resolve(); };
+    img.onerror = ()=>{ onDone(); resolve(); };
+    img.src = url;
+  }));
+  return Promise.allSettled(tasks).then(()=>undefined);
+}
+
+window.addEventListener("madesix:model-progress", (e)=>{
+  BOOT.modelObserved = true;
+  const ratio = Number(e?.detail?.ratio);
+  if(Number.isFinite(ratio)) BOOT.modelRatio = Math.max(0, Math.min(1, ratio));
+  bootUpdate("Загружаем 3D модель…");
+});
+window.addEventListener("madesix:model-ready", ()=>{
+  BOOT.modelObserved = true;
+  BOOT.modelRatio = 1;
+  BOOT.modelReady = true;
+  bootUpdate("Фото и 3D подготовлены");
+  bootResolveModelWaiters();
+});
+window.addEventListener("madesix:model-error", ()=>{
+  BOOT.modelObserved = true;
+  BOOT.modelRatio = 1;
+  BOOT.modelReady = true;
+  bootUpdate("Фото подготовлены");
+  bootResolveModelWaiters();
+});
 
 function setMsg(text){ const el=$("msg"); if(el) el.textContent=text||"—"; }
 
@@ -151,15 +285,16 @@ function openResultOverlay({badge="Статус", title="", text="", primary="О
 function launchDropFx(count=28){
   const layer=$("fxLayer");
   if(!layer) return;
-  const icons=["⭐","✨","💥","🎉","🔥"];
   for(let i=0;i<count;i++){
     const el=document.createElement("div");
     el.className="fx-star";
-    el.textContent=icons[randint(0,icons.length-1)];
     el.style.left=`${randint(2,96)}vw`;
     el.style.top=`${randint(-8,4)}vh`;
     el.style.animationDuration=`${(1.3 + Math.random()*1.2).toFixed(2)}s`;
-    el.style.fontSize=`${randint(14,24)}px`;
+    const size = randint(4,10);
+    el.style.width=`${size}px`;
+    el.style.height=`${size}px`;
+    el.style.opacity=`${(0.4 + Math.random()*0.6).toFixed(2)}`;
     layer.appendChild(el);
     setTimeout(()=>el.remove(),2600);
   }
@@ -193,7 +328,7 @@ function setupLiveWinsFeed(){
     "dima","kris","roman","timur","alisa","egor","denis","vlad","sasha","artem","lev","mark",
     "nikita","masha","yarik","igor","stepa","andrey","ilya","vika","yan","polina","danik","tema"
   ];
-  const prizes=["Обувь","Толстовка","Скидка 20%","200⭐","1000⭐","Сертификат 3000₽","VIP-ключ"];
+  const prizes=["Обувь","Толстовка","Скидка 20%","200 Stars","1000 Stars","Сертификат 3000₽","VIP-ключ"];
   const show=()=>{
     const n=names[randint(0,names.length-1)];
     const p=prizes[randint(0,prizes.length-1)];
@@ -211,11 +346,11 @@ function setupLiveWinsFeed(){
 
 function setupEventBanner(cfg){
   const e = cfg?.event || {};
-  if($("eventBannerTitle")) $("eventBannerTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
-  if($("eventBannerSubtitle")) $("eventBannerSubtitle").textContent = e.subtitle || "Праздничный дроп";
-  if($("eventShopMention")) $("eventShopMention").textContent = e.shop_mention ? `Магазин: ${e.shop_mention}` : "Магазин: CLO DROP";
+  if($("eventBannerTitle")) $("eventBannerTitle").textContent = e.title || "MADESIX";
+  if($("eventBannerSubtitle")) $("eventBannerSubtitle").textContent = e.subtitle || "Премиальная коллекция";
+  if($("eventShopMention")) $("eventShopMention").textContent = e.shop_mention ? `Магазин: ${e.shop_mention}` : "Магазин: MADESIX";
   if($("eventBannerImg") && e.image) $("eventBannerImg").src = e.image;
-  if($("eventModalTitle")) $("eventModalTitle").textContent = e.title || "ИВЕНТ К 23 ФЕВРАЛЯ";
+  if($("eventModalTitle")) $("eventModalTitle").textContent = e.title || "MADESIX";
   if($("eventModalText")) $("eventModalText").textContent = e.text || "Открывайте кейсы и забирайте праздничные награды.";
   if($("eventModalImg") && e.image) $("eventModalImg").src = e.image;
   if($("eventModalAction")) $("eventModalAction").textContent = e.cta_label || "Подписаться";
@@ -242,7 +377,7 @@ function setupContactButton(cfg){
   const btn = $("contactBtn");
   if(!btn) return;
   const url = (c.url || "").trim();
-  const label = (c.label || "").trim() || "Контакты";
+  const label = (c.label || "").trim() || "Менеджер";
   btn.textContent = label;
   if(url){
     btn.href = url;
@@ -263,7 +398,9 @@ function setupProfileIdentity(){
 
 function setBalance(balance){
   if($("balance")) $("balance").textContent=String(balance ?? "—");
-  if($("balance-top")) $("balance-top").textContent=`${balance ?? "—"}⭐`;
+  if($("balance-top")){
+    $("balance-top").innerHTML = `${balance ?? "—"} <img src="/static/brand/tg-stars.avif?v=1" alt="Stars" class="inline-block w-4 h-4 align-[-2px] stars-logo-inline"/>`;
+  }
 }
 
 function setTickets(s,b){
@@ -335,11 +472,11 @@ async function loadInventory(){
             <div class="mt-1 flex flex-wrap gap-1">
               <span class="rarity-chip ${rarityCss(lot.rarity)}"><span class="rarity-dot ${rarityCss(lot.rarity)}"></span>${esc(rarityLabel(lot.rarity))}</span>
               <span class="rarity-chip">x${Number(lot.left || 0)}</span>
-              ${lot.case_id ? `<span class="rarity-chip">${esc(lot.case_id)} · ${Number(lot.case_cost||0)}⭐</span>` : ``}
+              ${lot.case_id ? `<span class="rarity-chip">${esc(lot.case_id)} · ${Number(lot.case_cost||0)} Stars</span>` : ``}
             </div>
           </div>
           <button data-sell-tx="${Number(lot.tx_id)}" class="btn rounded-xl bg-emerald-400/15 border border-emerald-200/20 px-3 py-2 text-xs font-extrabold whitespace-nowrap">
-            Продать за ${Number(lot.sell_price_total || 0)}⭐
+            Продать за ${Number(lot.sell_price_total || 0)} Stars
           </button>
         </div>
       </div>
@@ -354,7 +491,7 @@ async function loadInventory(){
           const res = await api("/api/tickets/sell", { method:"POST", body: JSON.stringify({ tx_id: txId }) });
           setBalance(res.balance);
           setTickets(res.tickets_sneakers, res.tickets_bracelet);
-          setMsg(`✅ Тикеты проданы. Начислено ${res.credited}⭐`);
+          setMsg(`Тикеты проданы. Начислено ${res.credited} Stars`);
           await loadInventory();
         }catch(e){
           setMsg(`Ошибка продажи: ${e.message || "Ошибка"}`);
@@ -384,7 +521,7 @@ function openCasePreview(c){
   }
   $("casePreviewTitle").textContent=c.title || c.id;
   $("casePreviewDesc").textContent=c.desc || "Открой кейс и забери мощный дроп.";
-  $("casePreviewPrice").textContent=`${c.cost}⭐`;
+  $("casePreviewPrice").textContent=`${c.cost}`;
   $("casePreviewPrizes").innerHTML = prizes.slice(0,6).map(p=>`<span class="case-tag ${rarityCss(p.rarity)}">${esc(keyTitle(p.code))}</span>`).join("") || `<span class="case-tag">Без призов</span>`;
   const totalWeight = prizes.reduce((s,p)=>s + Math.max(0, Number(p.weight || 0)), 0);
   const box = $("casePreviewItems");
@@ -479,7 +616,7 @@ async function buildRouletteGrid(){
       </div>
       <div class="roulette-case-meta px-1 pb-2">
         <div class="roulette-case-name">${esc(c.title)}</div>
-        <div class="roulette-price-pill">${c.cost}⭐</div>
+        <div class="roulette-price-pill">${c.cost}</div>
       </div>
     `;
     btn.addEventListener("click", ()=>openCasePreview(c));
@@ -673,7 +810,7 @@ async function loadMyReferrals(){
     <div class="rounded-2xl bg-white/5 border border-white/15 p-3">
       <div class="flex items-center justify-between">
         <div class="text-sm font-extrabold">ID ${x.user_id}</div>
-        <div class="text-xs text-white/70">депозит: ${x.deposit_sum}⭐</div>
+        <div class="text-xs text-white/70">депозит: ${x.deposit_sum} Stars</div>
       </div>
       <div class="text-[11px] text-white/55 mt-1">дата: ${x.created_at || "—"}</div>
     </div>
@@ -721,12 +858,12 @@ async function doDeposit(amount){
 
   tg.openInvoice(inv.invoice_link, (status)=>{
     if(status==="paid"){
-      setMsg("✅ Оплата прошла. Обновляю баланс…");
+      setMsg("Оплата прошла. Обновляю баланс…");
       setTimeout(()=>loadMe().catch(()=>{}), 1200);
       openResultOverlay({
         badge:"Успех",
         title:"Баланс пополнен",
-        text:`Оплата на ${amount}⭐ прошла успешно.`,
+        text:`Оплата на ${amount} Stars прошла успешно.`,
         primary:"Продолжить"
       });
     }else{
@@ -740,7 +877,7 @@ async function doWithdraw(amount){
     method:"POST",
     body: JSON.stringify({ amount })
   });
-  setMsg("✅ Запрос на вывод создан.");
+  setMsg("Запрос на вывод создан.");
   await loadMe();
 }
 
@@ -765,7 +902,7 @@ async function doSpin(){
     setBalance(res.balance);
     setTickets(res.tickets_sneakers, res.tickets_bracelet);
     await loadInventory().catch(()=>{});
-    setMsg("✅ Готово!");
+    setMsg("Готово.");
     launchDropFx(34);
     const spinModal=$("caseSpinModal");
     spinModal?.classList.add("shadow-[0_0_40px_rgba(255,190,95,.35)]");
@@ -783,7 +920,7 @@ async function doSpin(){
       openResultOverlay({
         badge:"Недостаточно баланса",
         title:"Не хватает Stars",
-        text:`Для открытия нужно ${state.rouletteCost}⭐`,
+        text:`Для открытия нужно ${state.rouletteCost} Stars`,
         primary:"Пополнить",
         secondary:"Позже",
         onPrimary:()=>{$("depositBtn")?.click();}
@@ -803,7 +940,19 @@ async function doSpin(){
 
 document.addEventListener("DOMContentLoaded", async ()=>{
   try{
+    bootSetProgress(0, "Подготавливаем фото и 3D модель…");
+    initAppLikeViewportLock();
     if(tg){ tg.ready(); tg.expand?.(); }
+
+    const bootCfg = await loadCasesApi().catch(()=>null);
+    const bootUrls = bootCollectImageUrls(bootCfg || {});
+    await Promise.allSettled([
+      bootPreloadImages(bootUrls),
+      bootWaitForModel(22000),
+    ]);
+    bootSetProgress(1, "Готово");
+    await sleep(140);
+    bootHide();
 
     $("casePreviewClose")?.addEventListener("click", ()=>closeModal("casePreviewModal"));
     $("caseSpinClose")?.addEventListener("click", ()=>closeModal("caseSpinModal"));
@@ -869,7 +1018,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     $("withdrawCancel")?.addEventListener("click", ()=>closeModal("withdrawModal"));
     $("withdrawConfirm")?.addEventListener("click", async ()=>{
       const v = parseInt(($("withdrawAmount").value||"").trim(), 10);
-      if(!Number.isFinite(v) || v < 1000) return setMsg("Минимум для вывода — 1000⭐.");
+      if(!Number.isFinite(v) || v < 1000) return setMsg("Минимум для вывода — 1000 Stars.");
       closeModal("withdrawModal");
       await doWithdraw(v).catch(e=>setMsg(e.message));
     });
@@ -880,10 +1029,22 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       const v=$("refLink")?.value || "";
       if(!v || v==="—") return;
       await navigator.clipboard.writeText(v);
-      setMsg("Ссылка скопирована ✅");
+      setMsg("Ссылка скопирована");
     });
 
     await buildRouletteGrid();
+
+    $("hitSeasonOpenR1")?.addEventListener("click", async ()=>{
+      const target = (state.cases || []).find((x)=>String(x.id)==="r1") || (state.cases || [])[0];
+      if(!target){
+        setMsg("Кейсы пока не загружены");
+        return;
+      }
+      await selectCase(target, { silent:false });
+      $("screen-roulette")?.scrollIntoView({ behavior:"smooth", block:"start" });
+      setMsg(`Выбран кейс: ${target.title}`);
+    });
+
     const cfg = state.uiConfig || await loadCasesApi();
     setupProfileIdentity();
     setupEventBanner(cfg);
@@ -894,6 +1055,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     await loadInventory().catch(()=>{});
 
   }catch(e){
+    bootHide();
     setMsg(`Ошибка: ${e.message}`);
   }
 });

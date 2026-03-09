@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     referral_signup_bonus_referrer: int = Field(default=0, alias="REFERRAL_SIGNUP_BONUS_REFERRER")
     referral_signup_bonus_invitee: int = Field(default=0, alias="REFERRAL_SIGNUP_BONUS_INVITEE")
 
+    # --- Local browser testing (without Telegram initData) ---
+    browser_test_auth_enabled: bool = Field(default=False, alias="BROWSER_TEST_AUTH_ENABLED")
+    browser_test_user_id: int = Field(default=900000001, alias="BROWSER_TEST_USER_ID")
+    browser_test_balance: int = Field(default=10000, alias="BROWSER_TEST_BALANCE")
+
 
     @property
     def admin_ids(self) -> List[int]:

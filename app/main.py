@@ -69,6 +69,35 @@ def ensure_user(db: Session, user_id: int) -> User:
     return u
 
 
+def _is_local_browser_test_request(request: Request) -> bool:
+    host_hdr = (request.headers.get("host") or "").split(":", 1)[0].strip().lower()
+    client_host = (request.client.host if request.client else "").strip().lower()
+    local_hosts = {"127.0.0.1", "::1", "localhost"}
+    return (host_hdr in local_hosts) or (client_host in local_hosts)
+
+
+def get_request_user_id(request: Request, db: Session) -> int | None:
+    uid = get_tg_user_id(request)
+    if uid:
+        return int(uid)
+
+    if not bool(getattr(settings, "browser_test_auth_enabled", False)):
+        return None
+    if not _is_local_browser_test_request(request):
+        return None
+
+    test_uid = max(1, int(getattr(settings, "browser_test_user_id", 900000001) or 900000001))
+    min_balance = max(0, int(getattr(settings, "browser_test_balance", 10000) or 10000))
+
+    u = ensure_user(db, test_uid)
+    if int(u.balance or 0) < min_balance:
+        u.balance = min_balance
+        db.add(u)
+        db.commit()
+        db.refresh(u)
+    return test_uid
+
+
 def bind_referrer(db: Session, user: User, referrer_id: int | None) -> bool:
     """Bind referrer once (idempotent) if user has no referrer yet."""
     if not referrer_id:
@@ -213,7 +242,7 @@ def admin_page(request: Request):
 
 @app.get("/api/me")
 def api_me(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -289,7 +318,7 @@ def api_cases(db: Session = Depends(get_db)):
 
 @app.post("/api/spin")
 def api_spin(payload: SpinIn, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -314,7 +343,7 @@ def api_spin(payload: SpinIn, request: Request, db: Session = Depends(get_db)):
 @app.post("/api/stars/invoice")
 def api_invoice(payload: InvoiceIn, request: Request, db: Session = Depends(get_db)):
     """Create invoice_link (the actual credit happens in /api/internal/payment/confirm)."""
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -336,7 +365,7 @@ def api_invoice(payload: InvoiceIn, request: Request, db: Session = Depends(get_
 
 @app.post("/api/withdraw")
 def api_withdraw(payload: WithdrawIn, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -365,7 +394,7 @@ def api_withdraw(payload: WithdrawIn, request: Request, db: Session = Depends(ge
 
 @app.get("/api/history")
 def api_history(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -392,7 +421,7 @@ def api_history(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/api/inventory")
 def api_inventory(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
     u = ensure_user(db, uid)
@@ -468,7 +497,7 @@ def api_inventory(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/tickets/sell")
 def api_tickets_sell(payload: dict, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -538,7 +567,7 @@ def api_tickets_sell(payload: dict, request: Request, db: Session = Depends(get_
 
 @app.get("/api/referrals/my")
 def api_referrals_my(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -579,7 +608,7 @@ def api_referrals_my(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/prize/request")
 def api_prize_request(request: Request, payload: dict, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
+    uid = get_request_user_id(request, db)
     if not uid:
         raise HTTPException(status_code=401, detail="Unauthorized")
 

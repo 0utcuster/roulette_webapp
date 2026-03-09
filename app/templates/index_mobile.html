@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>CLO DROP</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+  <title>MADESIX</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg-1:#060812;
@@ -17,26 +17,31 @@
       --accent-2:#ff7b2c;
       --text-dim:rgba(255,255,255,.68);
       --line:rgba(255,255,255,.14);
+      --font-ui: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --font-chrome: Orbitron, Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial;
     }
-    html,body{ height:100%; font-family: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    html,body{
+      height:100%;
+      font-family: var(--font-ui);
+      overscroll-behavior: none;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body{
+      overflow-x: hidden;
+    }
+    img, canvas{
+      -webkit-user-drag: none;
+      user-select: none;
+    }
     .grad{
-      background: linear-gradient(160deg, #05070f 0%, #0a1130 45%, #101c45 100%);
+      background: linear-gradient(180deg, #05070f 0%, #060a1a 44%, #04060f 100%);
       position: relative;
       isolation: isolate;
     }
     .grad::before{
-      content:"";
-      position: fixed;
-      inset: -25vh -25vw;
-      z-index: -1;
-      pointer-events: none;
-      background:
-        radial-gradient(50% 45% at 18% 22%, rgba(255,120,48,.20), transparent 70%),
-        radial-gradient(52% 48% at 84% 18%, rgba(97,134,255,.24), transparent 72%),
-        radial-gradient(48% 44% at 56% 84%, rgba(255,82,138,.14), transparent 74%);
-      filter: blur(38px) saturate(1.08);
-      transform: translate3d(0,0,0);
-      animation: bgFlow 28s ease-in-out infinite alternate;
+      content:none;
     }
     @keyframes bgFlow{
       0%{ transform: translate3d(0%, 0%, 0) scale(1.04); }
@@ -362,6 +367,9 @@
       color: rgba(255,255,255,.95);
       letter-spacing: -.2px;
       text-wrap: balance;
+      font-family: var(--font-chrome);
+      text-transform: uppercase;
+      letter-spacing: .02em;
     }
     .roulette-price-pill{
       display:inline-flex;
@@ -429,33 +437,517 @@
     }
     .fx-star{
       position:absolute;
-      font-size:16px;
       animation: starFall 1.8s linear forwards;
-      opacity: .9;
-      text-shadow: 0 0 14px rgba(255,200,80,.55);
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.95), rgba(174,220,255,.9) 38%, rgba(124,156,255,.34) 70%, rgba(124,156,255,0));
+      box-shadow: 0 0 16px rgba(168,205,255,.48);
     }
     @keyframes starFall{
       0%{ transform: translateY(-20px) rotate(0deg) scale(.8); opacity:0; }
       12%{ opacity:1; }
       100%{ transform: translateY(110vh) rotate(540deg) scale(1.2); opacity:0; }
     }
+    .poly-bg-canvas{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .62;
+      filter: saturate(1.05);
+    }
+    .showcase3d{
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(255,201,118,.24);
+      background:
+        radial-gradient(115% 88% at 16% -4%, rgba(255,165,90,.18), transparent 66%),
+        radial-gradient(115% 88% at 88% 104%, rgba(98,145,255,.15), transparent 64%),
+        linear-gradient(180deg, rgba(16,21,47,.95), rgba(8,12,29,.98));
+    }
+    .showcase3d::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: repeating-linear-gradient(120deg, rgba(255,255,255,.03) 0 2px, rgba(255,255,255,0) 2px 10px);
+      opacity:.5;
+    }
+    .showcase3d-head{
+      position: relative;
+      z-index: 1;
+    }
+    .showcase3d-strip{
+      position: relative;
+      z-index: 1;
+      margin-top: 12px;
+      display:flex;
+      gap:12px;
+      overflow-x:auto;
+      scroll-snap-type:x mandatory;
+      padding-bottom:4px;
+    }
+    .showcase3d-strip.single{
+      display:block;
+      overflow: visible;
+      padding-bottom:0;
+    }
+    .showcase3d-strip::-webkit-scrollbar{ height:6px; }
+    .showcase3d-strip::-webkit-scrollbar-thumb{
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(255,193,86,.56), rgba(108,157,255,.56));
+    }
+    .showcase3d-card{
+      scroll-snap-align:start;
+      position: relative;
+      min-width: 250px;
+      width: 250px;
+      border-radius: 20px;
+      overflow: hidden;
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,.08), transparent 60%),
+        linear-gradient(180deg, rgba(12,20,45,.95), rgba(7,10,23,.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 14px 24px rgba(0,0,0,.34);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .showcase3d-card.selected{
+      transform: translateY(-2px);
+      border-color: rgba(255,213,123,.44);
+      box-shadow:
+        0 20px 30px rgba(0,0,0,.44),
+        0 0 0 1px rgba(255,213,123,.22),
+        0 0 24px rgba(255,186,80,.2),
+        inset 0 1px 0 rgba(255,255,255,.11);
+    }
+    .card__canvas{
+      width:100%;
+      height:180px;
+      display:block;
+      background: transparent;
+    }
+    .showcase3d-meta{ padding: 10px 12px 12px; }
+    .showcase3d-title{
+      font-size:14px;
+      line-height:1.2;
+      font-weight:900;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      font-family: var(--font-chrome);
+    }
+    #roulette-title,
+    #spinModalTitle,
+    #casePreviewTitle{
+      font-family: var(--font-chrome);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .showcase3d-sub{
+      margin-top:3px;
+      font-size:11px;
+      color: rgba(255,255,255,.66);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .card__button{
+      margin-top: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(223,240,255,.6);
+      padding: 6px 11px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #11203a;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 22%),
+        linear-gradient(120deg, #e9f0ff 0%, #bed0ee 30%, #acd6ff 58%, #dbc7ff 86%, #e8f1ff 100%);
+      box-shadow: 0 8px 14px rgba(115,157,255,.28), inset 0 1px 0 rgba(255,255,255,.54);
+      font-family: var(--font-chrome);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .showcase3d-loader{
+      position: relative;
+      z-index:1;
+      margin-top: 8px;
+      font-size: 11px;
+      color: rgba(255,255,255,.62);
+    }
+    .hit-season-card{
+      width: 100%;
+      min-width: 100%;
+      border-radius: 22px;
+      border-color: rgba(255,219,145,.55);
+      box-shadow:
+        0 24px 34px rgba(0,0,0,.5),
+        0 0 0 1px rgba(255,214,132,.25),
+        0 0 30px rgba(255,191,84,.24),
+        inset 0 1px 0 rgba(255,255,255,.22),
+        inset 0 -18px 22px rgba(0,0,0,.28);
+      background:
+        radial-gradient(110% 90% at 50% -4%, rgba(255,207,120,.22), transparent 62%),
+        radial-gradient(110% 90% at 86% 102%, rgba(111,156,255,.2), transparent 64%),
+        linear-gradient(180deg, rgba(14,21,46,.9), rgba(8,11,26,.96));
+    }
+    .hit-season-card::before{
+      content:"";
+      position:absolute;
+      inset:-70% auto auto -60%;
+      width:48%;
+      height:220%;
+      transform: rotate(19deg);
+      pointer-events:none;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.32), rgba(255,255,255,0));
+      animation: cardSweep 5.4s linear infinite;
+      opacity:.12;
+    }
+    .hit-season-card .card__canvas{
+      height: 260px;
+    }
+    .showcase3d-fallback{
+      position:absolute;
+      left:50%;
+      top:42%;
+      width:68%;
+      max-width: 270px;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+      pointer-events:none;
+      z-index: 3;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,.38));
+    }
+    .hit-season-badge{
+      position:absolute;
+      left:12px;
+      top:12px;
+      z-index:2;
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#12213a;
+      border:1px solid rgba(224,241,255,.76);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0) 28%),
+        linear-gradient(120deg, #e7f0ff 0%, #c2d5f3 28%, #e1cbff 56%, #a4d8ff 78%, #edf3ff 100%);
+      box-shadow: 0 8px 16px rgba(118,160,255,.36), inset 0 1px 0 rgba(255,255,255,.54);
+      font-family: var(--font-chrome);
+    }
+    .hit-season-meta{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .hit-season-open{
+      min-width: 168px;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* Glossy premium skin */
+    .poly-bg-canvas{
+      opacity:.78;
+      filter: saturate(1.15) contrast(1.08);
+    }
+    .card{
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.015) 28%, rgba(11,16,35,.9) 100%),
+        linear-gradient(180deg, rgba(23,30,63,.9), rgba(9,13,30,.95));
+      box-shadow:
+        0 22px 38px rgba(0,0,0,.46),
+        inset 0 1px 0 rgba(255,255,255,.16),
+        inset 0 -20px 26px rgba(0,0,0,.28);
+      backdrop-filter: blur(18px) saturate(1.08);
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-62% auto auto -52%;
+      width:54%;
+      height:210%;
+      transform: rotate(18deg);
+      pointer-events:none;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.2), rgba(255,255,255,0));
+      opacity:.08;
+      animation: cardSweep 7s linear infinite;
+    }
+    @keyframes cardSweep{
+      0%{ transform: translateX(0) rotate(18deg); opacity:.03; }
+      22%{ opacity:.11; }
+      100%{ transform: translateX(360%) rotate(18deg); opacity:.03; }
+    }
+    .btn-primary{
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,0) 26%),
+        linear-gradient(120deg, #e6edf8 0%, #b4c6e8 28%, #d6bfff 52%, #9fd9ff 74%, #e8edf8 100%);
+      border: 1px solid rgba(227,241,255,.82);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.56),
+        inset 0 -2px 0 rgba(77,97,132,.28),
+        0 16px 28px rgba(128,166,255,.36),
+        0 0 0 1px rgba(184,216,255,.28);
+      color:#0f1d33;
+      text-shadow: 0 1px 0 rgba(255,255,255,.38);
+      font-family: var(--font-chrome);
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+    .btn-primary::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: linear-gradient(120deg, rgba(255,255,255,0) 16%, rgba(255,255,255,.38) 48%, rgba(255,255,255,0) 82%);
+      transform: translateX(-120%);
+      animation: btnSheen 3s ease-in-out infinite;
+    }
+    @keyframes btnSheen{
+      0%, 42%{ transform: translateX(-120%); }
+      68%{ transform: translateX(120%); }
+      100%{ transform: translateX(120%); }
+    }
+    .btn-outline-strong{
+      border-color: rgba(255,255,255,.26);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05)),
+        linear-gradient(180deg, rgba(14,20,45,.7), rgba(8,11,25,.8));
+      color: #dbe7ff;
+      font-family: var(--font-chrome);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .action-btn{
+      font-family: var(--font-ui);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 12.5px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+    }
+    .stars-unit{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      white-space:nowrap;
+    }
+    .stars-logo{
+      width:1.12em;
+      height:1.12em;
+      object-fit:contain;
+      display:inline-block;
+      vertical-align:0.06em;
+      filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255,255,255,.42));
+    }
+    .stars-logo-inline{
+      width:1.08em !important;
+      height:1.08em !important;
+      vertical-align:0.08em !important;
+      filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(255,255,255,.38));
+    }
+    .app-loader{
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+      background:
+        radial-gradient(120% 100% at 20% 0%, rgba(98,139,245,.25), transparent 62%),
+        radial-gradient(120% 100% at 86% 100%, rgba(212,159,255,.2), transparent 65%),
+        rgba(4,7,18,.94);
+      backdrop-filter: blur(14px);
+      transition: opacity .35s ease, visibility .35s ease;
+    }
+    .app-loader.hidden{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+    }
+    .app-loader-card{
+      width:min(92vw, 360px);
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02) 30%, rgba(9,14,31,.94)),
+        linear-gradient(180deg, rgba(15,22,48,.92), rgba(8,12,26,.95));
+      box-shadow:
+        0 24px 40px rgba(0,0,0,.5),
+        inset 0 1px 0 rgba(255,255,255,.14),
+        inset 0 -18px 26px rgba(0,0,0,.26);
+      padding: 18px 16px;
+    }
+    .app-loader-track{
+      margin-top: 10px;
+      width:100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.15);
+    }
+    .app-loader-fill{
+      height:100%;
+      width:0%;
+      background:
+        linear-gradient(90deg, #b3ceff 0%, #b6a5ff 35%, #9be4ff 68%, #d4ecff 100%);
+      box-shadow: 0 0 16px rgba(170,205,255,.55);
+      transition: width .2s ease;
+    }
+    .roulette-card{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.17);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.01) 30%, rgba(7,11,25,.9)),
+        linear-gradient(180deg, rgba(14,20,44,.88), rgba(8,11,24,.94));
+      box-shadow:
+        0 12px 22px rgba(0,0,0,.33),
+        inset 0 1px 0 rgba(255,255,255,.14),
+        inset 0 -20px 24px rgba(0,0,0,.24);
+      overflow: hidden;
+    }
+    .roulette-card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 36%);
+      opacity:.55;
+    }
+    .roulette-case-art img,
+    .case-square-art img,
+    .prize-img{
+      filter:
+        saturate(1.16)
+        contrast(1.08)
+        drop-shadow(0 14px 20px rgba(0,0,0,.36));
+    }
+    .case-square-art{
+      border-color: rgba(255,255,255,.2);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.1),
+        inset 0 -16px 24px rgba(0,0,0,.22),
+        0 12px 22px rgba(0,0,0,.24);
+    }
+    .prize-card{
+      border-color: rgba(255,255,255,.2);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.14),
+        inset 0 -20px 30px rgba(0,0,0,.3),
+        0 12px 20px rgba(0,0,0,.25);
+    }
+    .roulette-price-pill{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.54), rgba(255,255,255,0) 24%),
+        linear-gradient(120deg, #edf4ff 0%, #c8d7f5 38%, #a0d8ff 66%, #d9c8ff 100%);
+      border:1px solid rgba(222,236,255,.66);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.55),
+        0 10px 18px rgba(115,156,255,.3);
+      font-family: var(--font-chrome);
+      letter-spacing:.02em;
+      text-transform: uppercase;
+      color:#101d31;
+    }
+    .case-tag{
+      border-color: rgba(255,229,170,.5);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,0) 28%),
+        linear-gradient(180deg, rgba(255,202,116,.34), rgba(255,145,46,.32));
+    }
+    .showcase3d-card{
+      border-color: rgba(255,255,255,.22);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.015) 34%, rgba(8,12,26,.9)),
+        linear-gradient(180deg, rgba(11,20,45,.9), rgba(7,10,23,.96));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.15),
+        inset 0 -16px 20px rgba(0,0,0,.24),
+        0 16px 24px rgba(0,0,0,.36);
+    }
+    .roulette-card,
+    .prize-card,
+    .case-square-art,
+    .showcase3d-card{
+      border-color: rgba(255,255,255,.22) !important;
+      box-shadow:
+        0 14px 22px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.15),
+        inset 0 -16px 24px rgba(0,0,0,.28) !important;
+    }
+    .roulette-card::after,
+    .prize-card::after,
+    .case-square-art::after,
+    .showcase3d-card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 42%);
+      opacity:.34;
+    }
   </style>
 </head>
 
 <body class="grad text-white">
-  <div class="min-h-screen safe-pad">
+  <div id="appBootLoader" class="app-loader">
+    <div class="app-loader-card">
+      <div class="flex items-center gap-3">
+        <img src="/static/brand/madesix-logo.svg" alt="MADESIX" class="w-8 h-8 object-contain"/>
+        <div class="min-w-0">
+          <div class="text-xs uppercase tracking-[.12em] text-white/65">MADESIX</div>
+          <div class="text-sm font-extrabold">Загрузка интерфейса</div>
+        </div>
+      </div>
+      <div id="appBootLoaderText" class="mt-3 text-xs text-white/75">Подготавливаем фото и 3D модель…</div>
+      <div class="app-loader-track">
+        <div id="appBootLoaderFill" class="app-loader-fill"></div>
+      </div>
+      <div id="appBootLoaderPercent" class="mt-2 text-[11px] text-white/65">0%</div>
+    </div>
+  </div>
+  <canvas id="polyBgCanvas" class="poly-bg-canvas" aria-hidden="true"></canvas>
+  <div class="min-h-screen safe-pad relative z-10">
     <header class="px-4 pt-5">
       <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-stretch">
         <div class="card rounded-2xl px-3 h-12 min-w-0 flex items-center gap-2">
-          <div class="h-8 w-8 rounded-xl bg-white/10 border border-white/15 grid place-items-center shrink-0">⭐</div>
+          <div class="h-8 w-8 rounded-xl bg-white/10 border border-white/15 grid place-items-center shrink-0 overflow-hidden">
+            <img src="/static/brand/madesix-logo.svg" alt="MADESIX logo" class="w-6 h-6 object-contain"/>
+          </div>
           <div class="min-w-0">
-            <div class="text-[10px] uppercase tracking-wide text-white/60 leading-none">Telegram Stars</div>
-            <div class="text-sm font-extrabold tracking-tight truncate">CLO DROP</div>
+            <div class="text-[10px] uppercase tracking-wide text-white/60 leading-none">Premium Cases</div>
+            <div class="text-sm font-extrabold tracking-tight truncate">MADESIX</div>
           </div>
         </div>
         <div class="card rounded-2xl px-3 h-12 min-w-[120px] flex flex-col justify-center">
           <div class="text-[10px] text-white/65 leading-none">Баланс</div>
-          <div class="font-black text-sm tracking-tight"><span id="balance">—</span><span class="text-amber-300">⭐</span></div>
+          <div class="font-black text-sm tracking-tight">
+            <span id="balance">—</span>
+            <span class="stars-unit text-amber-300"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
+          </div>
         </div>
         <button id="openProfileBtn" class="btn rounded-2xl bg-white/10 border border-white/15 h-12 px-4 text-xs font-extrabold whitespace-nowrap">Профиль</button>
       </div>
@@ -465,7 +957,9 @@
           <div>
             <div class="text-sm font-extrabold">Панель управления</div>
             <div class="mt-1 text-xs text-white/70">
-              Спин стоит <span class="font-bold" id="spin-cost-inline">—</span>⭐. Выпадают вещи, скидки или Stars.
+              Спин стоит <span class="font-bold" id="spin-cost-inline">—</span>
+              <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>.
+              Выпадают вещи, скидки и Stars.
             </div>
           </div>
         </div>
@@ -478,9 +972,9 @@
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <button id="depositBtn" class="btn btn-primary rounded-2xl font-extrabold px-3 py-2.5 w-full">Пополнить</button>
-            <button id="withdrawBtn" class="btn btn-outline-strong rounded-2xl font-extrabold px-3 py-2.5 w-full">Вывод</button>
-            <a id="contactBtn" href="#" target="_blank" rel="noopener" class="btn btn-outline-strong rounded-2xl font-extrabold px-3 py-2.5 w-full text-center">Контакты</a>
+            <button id="depositBtn" class="btn btn-primary action-btn rounded-2xl font-extrabold w-full">Пополнить</button>
+            <button id="withdrawBtn" class="btn btn-outline-strong action-btn rounded-2xl font-extrabold w-full">Вывести</button>
+            <a id="contactBtn" href="#" target="_blank" rel="noopener" class="btn btn-outline-strong action-btn rounded-2xl font-extrabold w-full text-center">Менеджер</a>
           </div>
         </div>
         <div class="mt-2 text-[11px] text-white/60" id="msg">—</div>
@@ -497,14 +991,37 @@
         <img id="eventBannerImg" src="/static/prizes/r4/ticket_sneakers_3.svg" class="w-full h-36 object-cover opacity-85"/>
         <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
         <div class="absolute left-4 bottom-4">
-          <div class="text-[11px] uppercase tracking-wide text-white/70" id="eventBannerSubtitle">Event</div>
-          <div class="text-2xl font-black leading-tight" id="eventBannerTitle">CLO DROP</div>
-          <div class="mt-1 text-xs text-white/80" id="eventShopMention">Магазин: CLO DROP</div>
+          <div class="text-[11px] uppercase tracking-wide text-white/70" id="eventBannerSubtitle">Коллекция</div>
+          <div class="text-2xl font-black leading-tight" id="eventBannerTitle">MADESIX</div>
+          <div class="mt-1 text-xs text-white/80" id="eventShopMention">Магазин: MADESIX</div>
         </div>
       </button>
     </header>
 
     <main class="px-4 mt-4 space-y-4">
+      <section class="card rounded-3xl p-4 showcase3d">
+        <div class="showcase3d-head flex items-start gap-3">
+          <div>
+            <div class="text-sm font-black uppercase tracking-[.08em]">Хит сезона</div>
+            <div class="text-xs text-white/70 mt-1">Ключевой дроп из новой коллекции.</div>
+          </div>
+        </div>
+        <div id="model3dLoader" class="showcase3d-loader">Загрузка 3D модели…</div>
+        <div class="showcase3d-strip single">
+          <article class="showcase3d-card hit-season-card selected" data-model-src="/static/3d/hit_season.glb" data-fallback-img="/static/prizes/sneakers_1.svg" data-case-id="r1">
+            <div class="hit-season-badge">NUMERIS</div>
+            <canvas class="card__canvas"></canvas>
+            <div class="showcase3d-meta hit-season-meta">
+              <div>
+                <div class="showcase3d-title">NUMERIS · Limited</div>
+                <div class="showcase3d-sub">3D Signature Item</div>
+              </div>
+              <button id="hitSeasonOpenR1" class="card__button hit-season-open" type="button">Открыть этот кейс</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <!-- РУЛЕТКА -->
       <section id="screen-roulette" class="space-y-4">
         <div>
@@ -517,8 +1034,11 @@
 
         <div class="flex items-center justify-between">
           <div>
-            <div id="roulette-title" class="text-lg font-black tracking-tight">CLO DROP</div>
-            <div class="text-xs font-bold text-white/55">Прокрут: <span id="spin-cost">—</span>⭐</div>
+            <div id="roulette-title" class="text-lg font-black tracking-tight">MADESIX</div>
+            <div class="text-xs font-bold text-white/55">
+              Прокрут: <span id="spin-cost">—</span>
+              <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
+            </div>
           </div>
           <div class="text-right">
             <div class="text-xs font-bold text-white/55">Баланс</div>
@@ -529,13 +1049,16 @@
         <div class="card rounded-3xl p-4">
           <div class="flex items-start justify-between">
             <div>
-              <div class="text-xs text-white/70">🎰 Открытие кейса</div>
-              <div class="text-lg font-extrabold">Крутите за <span id="spinCostTitle">—</span>⭐</div>
+              <div class="text-xs text-white/70">Открытие кейса</div>
+              <div class="text-lg font-extrabold">
+                Крутите за <span id="spinCostTitle">—</span>
+                <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
+              </div>
               <div class="text-xs text-white/70 mt-1">Выигрывайте вещи, скидки и Stars. Редкие механики открываются по ходу игры.</div>
             </div>
             <div class="text-right">
               <div class="text-[11px] text-white/70">Серия</div>
-              <div class="font-extrabold text-sm">⚡ HOT DROP</div>
+              <div class="font-extrabold text-sm">MADESIX DROP</div>
               <div class="font-extrabold text-sm text-white/60">x<span id="hotStreak">1</span></div>
             </div>
           </div>
@@ -546,7 +1069,10 @@
           </div>
 
           <button id="openSpinModalBtn" class="btn btn-primary mt-4 w-full rounded-2xl font-extrabold py-4 opacity-50" disabled>Сначала выберите кейс</button>
-          <div class="mt-2 text-xs text-white/60">Стоимость прокрута: <span id="spinCost" class="font-bold text-white/80">—</span>⭐</div>
+          <div class="mt-2 text-xs text-white/60">
+            Стоимость прокрута: <span id="spinCost" class="font-bold text-white/80">—</span>
+            <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
+          </div>
 
           <div class="mt-3 hidden" id="spinResult">
             <div class="rounded-2xl bg-white/10 border border-white/15 p-3">
@@ -571,7 +1097,7 @@
     <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-sm rounded-3xl p-4">
         <div class="text-sm font-extrabold">Пополнить Stars</div>
-        <div class="text-xs text-white/70 mt-1">Введите любую сумму от 1⭐</div>
+        <div class="text-xs text-white/70 mt-1">Введите любую сумму от 1 Stars</div>
         <input id="depositAmount" type="number" min="1" step="1"
                class="mt-3 w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-sm focus:outline-none"
                placeholder="Например: 1, 25, 500" />
@@ -588,7 +1114,7 @@
     <div class="h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-6">
       <div class="card w-full max-w-sm rounded-3xl p-4">
         <div class="text-sm font-extrabold">Вывод Stars</div>
-        <div class="text-xs text-white/70 mt-1">Введите сумму (минимум 1000⭐)</div>
+        <div class="text-xs text-white/70 mt-1">Введите сумму (минимум 1000 Stars)</div>
         <input id="withdrawAmount" type="number" min="1000" step="1"
                class="mt-3 w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-sm focus:outline-none"
                placeholder="Например: 1000" />
@@ -606,7 +1132,7 @@
       <div class="card w-full max-w-md rounded-3xl p-4 result-pop">
         <div class="flex items-center justify-between">
           <div class="text-sm font-extrabold">Выбор кейса</div>
-          <button id="casePreviewClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+          <button id="casePreviewClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">×</button>
         </div>
         <div id="casePreviewArt" class="mt-3 case-square-art h-52 rarity-blue">
           <img id="casePreviewImg" src="" alt="case"/>
@@ -653,10 +1179,10 @@
       <div class="card w-full max-w-md rounded-3xl p-5 result-pop">
         <div class="flex items-center justify-between">
           <div class="text-xs text-white/70">Событие</div>
-          <button id="eventModalClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+          <button id="eventModalClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">×</button>
         </div>
         <img id="eventModalImg" src="/static/prizes/r4/ticket_sneakers_3.svg" class="mt-2 w-full h-36 rounded-2xl object-cover border border-white/15"/>
-        <div id="eventModalTitle" class="mt-3 text-2xl font-black">CLO DROP</div>
+        <div id="eventModalTitle" class="mt-3 text-2xl font-black">MADESIX</div>
         <div id="eventModalText" class="mt-2 text-sm text-white/75">Описание ивента</div>
         <button id="eventModalAction" class="btn btn-primary mt-4 w-full rounded-2xl py-3 font-extrabold">Участвовать</button>
       </div>
@@ -699,20 +1225,20 @@
             <div class="text-xs text-white/70">Профиль</div>
             <div class="text-lg font-black">Аккаунт и история</div>
           </div>
-          <button id="profileClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+          <button id="profileClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">×</button>
         </div>
         <div class="mt-3 rounded-2xl bg-white/5 border border-white/15 p-3">
           <div class="text-[11px] text-white/70">Ваша реферальная ссылка</div>
           <div class="mt-2 flex gap-2">
             <input id="refLink" class="w-full bg-white/5 border border-white/15 rounded-2xl px-3 py-3 text-xs focus:outline-none" value="—" readonly/>
-            <button id="copyRef" class="btn rounded-2xl bg-white text-black font-extrabold px-4">Copy</button>
+            <button id="copyRef" class="btn rounded-2xl bg-white text-black font-extrabold px-4">Копировать</button>
           </div>
         </div>
         <div class="mt-3 text-xs text-white/70">История операций</div>
         <div id="history" class="mt-2 max-h-72 overflow-auto space-y-2"></div>
         <div class="mt-3 text-xs text-white/70">Мои рефералы</div>
         <div id="myReferrals" class="mt-2 max-h-48 overflow-auto space-y-2"></div>
-        <a id="adminLink" class="hidden mt-3 card rounded-3xl p-3 block text-center" href="/admin">⚙️ Админка</a>
+        <a id="adminLink" class="hidden mt-3 card rounded-3xl p-3 block text-center" href="/admin">Админка</a>
       </div>
     </div>
   </div>
@@ -726,7 +1252,7 @@
             <div class="text-xs text-white/70">Открытие кейса</div>
             <div id="spinModalTitle" class="text-lg font-black">Кейс</div>
           </div>
-          <button id="caseSpinClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">✕</button>
+          <button id="caseSpinClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">×</button>
         </div>
         <div class="mt-3 relative overflow-hidden rounded-3xl border border-white/15 bg-white/5 flex-1 min-h-[60dvh]" style="height: 320px;">
           <div class="absolute inset-0 pointer-events-none">
@@ -749,7 +1275,11 @@
     </div>
   </div>
 
+  <script src="/static/vendor/three/three.min.js?v=1"></script>
+  <script src="/static/vendor/three/GLTFLoader.js?v=1"></script>
+  <script src="/static/poly_bg.js?v=3"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="/static/mobile.js?v=201"></script>
+  <script src="/static/mobile.js?v=208"></script>
+  <script src="/static/case3d_showcase.js?v=9"></script>
 </body>
 </html>
