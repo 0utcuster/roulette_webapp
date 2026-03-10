@@ -190,11 +190,13 @@ def _human_code_title(code: str) -> str:
 
 def _rarity_title(v: str) -> str:
     return {
-        "blue": "Синий",
-        "purple": "Фиолетовый",
-        "red": "Красный",
-        "yellow": "Жёлтый",
-    }.get(str(v or "").lower(), "Синий")
+        "blue": "Обычный",
+        "purple": "Редкий",
+        "red": "Эпический",
+        "yellow": "Легендарный",
+        "orange": "Мифический",
+        "black": "Артефактный",
+    }.get(str(v or "").lower(), "Обычный")
 
 
 def _ticket_sell_percent(media: dict) -> int:

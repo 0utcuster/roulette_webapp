@@ -116,10 +116,10 @@ function renderPrizeRow(prize, caseId, idx) {
     <input data-field="amount" type="number" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${Number(prize.amount || 0)}" placeholder="amount"/>
     <input data-field="weight" type="number" min="0" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs" value="${Number(prize.weight || 0)}" placeholder="weight"/>
     <select data-field="rarity" class="rounded-xl bg-black/20 border border-white/10 px-2 py-2 text-xs">
-      <option value="blue" ${rarity === "blue" ? "selected" : ""}>Синий</option>
-      <option value="purple" ${rarity === "purple" ? "selected" : ""}>Фиолетовый</option>
-      <option value="red" ${rarity === "red" ? "selected" : ""}>Красный</option>
-      <option value="yellow" ${rarity === "yellow" ? "selected" : ""}>Жёлтый</option>
+      <option value="blue" ${rarity === "blue" ? "selected" : ""}>Обычный</option>
+      <option value="purple" ${rarity === "purple" ? "selected" : ""}>Редкий</option>
+      <option value="red" ${rarity === "red" ? "selected" : ""}>Эпический</option>
+      <option value="yellow" ${rarity === "yellow" ? "selected" : ""}>Легендарный</option>
     </select>
     <div class="flex items-center justify-between gap-2">
       <label class="text-xs text-white/70 flex items-center gap-2"><input data-field="is_enabled" type="checkbox" ${prize.is_enabled ? "checked" : ""}/>on</label>

@@ -101,7 +101,7 @@ function rarityKey(r){
   return ["blue","purple","red","yellow"].includes(x) ? x : "blue";
 }
 function rarityLabel(r){
-  return ({ blue:"Синий", purple:"Фиолетовый", red:"Красный", yellow:"Жёлтый" })[rarityKey(r)];
+  return ({ blue:"Обычный", purple:"Редкий", red:"Эпический", yellow:"Легендарный" })[rarityKey(r)];
 }
 function rarityCss(r){ return `rarity-${rarityKey(r)}`; }
 function caseTopRarity(caseObj){
