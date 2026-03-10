@@ -125,6 +125,23 @@ def require_admin(uid: int | None):
         raise HTTPException(status_code=403, detail="Forbidden")
 
 
+def get_admin_uid(request: Request, db: Session | None = None) -> int:
+    uid = get_tg_user_id(request)
+    if uid and is_admin(uid):
+        return int(uid)
+
+    # Local fallback for admin editing in browser (localhost only).
+    if bool(getattr(settings, "browser_test_auth_enabled", False)) and _is_local_browser_test_request(request):
+        local_uid = max(1, int(getattr(settings, "browser_test_user_id", 900000001) or 900000001))
+        if db is not None:
+            ensure_user(db, local_uid)
+        return local_uid
+
+    if uid is not None:
+        require_admin(uid)
+    raise HTTPException(status_code=403, detail="Forbidden")
+
+
 def load_media_config() -> dict:
     if not MEDIA_CONFIG_PATH.exists():
         return {"event": {}, "roulettes": {}, "ticket_targets": {}, "economy": {}, "contact": {}}
@@ -758,15 +775,13 @@ def api_internal_referral_bind(
 
 @app.get("/api/admin/cases")
 def admin_cases(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
     return {"items": list_cases(db)}
 
 
 @app.put("/api/admin/cases")
 def admin_cases_put(payload: dict, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
     items = payload.get("items") or []
     if not isinstance(items, list):
         raise HTTPException(status_code=400, detail="items must be list")
@@ -776,23 +791,20 @@ def admin_cases_put(payload: dict, request: Request, db: Session = Depends(get_d
 
 @app.get("/api/admin/media_config")
 def admin_media_config(request: Request):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request)
     return load_media_config()
 
 
 @app.put("/api/admin/media_config")
 def admin_media_config_put(payload: dict, request: Request):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request)
     save_media_config(payload)
     return {"ok": True}
 
 
 @app.post("/api/admin/upload_image")
 async def admin_upload_image(request: Request, file: UploadFile = File(...)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request)
 
     content_type = (file.content_type or "").lower()
     if content_type and not content_type.startswith("image/"):
@@ -816,8 +828,7 @@ async def admin_upload_image(request: Request, file: UploadFile = File(...)):
 
 @app.get("/api/admin/prizes")
 def admin_prizes(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
 
     # ensure rows exist for all enum keys
     existing = {str(r.key.value if hasattr(r.key, "value") else r.key): r for r in db.query(PrizeConfig).all()}
@@ -836,8 +847,7 @@ def admin_prizes(request: Request, db: Session = Depends(get_db)):
 
 @app.put("/api/admin/prizes")
 def admin_prizes_put(payload: dict, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
 
     items = payload.get("items") or []
     for it in items:
@@ -859,8 +869,7 @@ def admin_prizes_put(payload: dict, request: Request, db: Session = Depends(get_
 
 @app.get("/api/admin/withdraws")
 def admin_withdraws(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
     rows = db.query(WithdrawRequest).order_by(WithdrawRequest.id.desc()).limit(200).all()
     return {"items": [
         {"id": int(r.id), "user_id": int(r.user_id), "amount": int(r.amount), "status": (r.status.value if hasattr(r.status,"value") else str(r.status))}
@@ -870,8 +879,7 @@ def admin_withdraws(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/api/admin/prize_requests")
 def admin_prize_requests(request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
     rows = db.query(PrizeRequest).order_by(PrizeRequest.id.desc()).limit(200).all()
     return {"items": [
         {"id": int(r.id), "user_id": int(r.user_id), "prize_type": r.prize_type, "status": (r.status.value if hasattr(r.status,"value") else str(r.status))}
@@ -881,8 +889,7 @@ def admin_prize_requests(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/admin/adjust")
 def admin_adjust(payload: dict, request: Request, db: Session = Depends(get_db)):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    uid = get_admin_uid(request, db)
 
     user_id = int(payload.get("user_id") or 0)
     if not user_id:
@@ -931,8 +938,7 @@ def admin_referrals_summary(
     to: str = Query(default=""),
     db: Session = Depends(get_db),
 ):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
 
     dt_from = _parse_date(from_)
     dt_to = _parse_date(to)
@@ -998,8 +1004,7 @@ def admin_referrals_details(
     to: str = Query(default=""),
     db: Session = Depends(get_db),
 ):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
 
     dt_from = _parse_date(from_)
     dt_to = _parse_date(to)
@@ -1040,8 +1045,7 @@ def admin_stats(
     to: str = Query(default=""),
     db: Session = Depends(get_db),
 ):
-    uid = get_tg_user_id(request)
-    require_admin(uid)
+    _ = get_admin_uid(request, db)
 
     dt_from = _parse_date(from_)
     dt_to = _parse_date(to)

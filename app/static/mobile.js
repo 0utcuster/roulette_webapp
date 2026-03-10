@@ -282,6 +282,68 @@ function openResultOverlay({badge="Статус", title="", text="", primary="О
   openModal("resultOverlay");
 }
 
+function resolvePrizeForWin(prizeKey, prizeRarity=null){
+  const prizes = Array.isArray(state?.currentCase?.prizes) ? state.currentCase.prizes : [];
+  const rarity = prizeRarity ? rarityKey(prizeRarity) : null;
+  let item = prizes.find((p)=>String(p?.code)===String(prizeKey) && (!rarity || rarityKey(p?.rarity)===rarity));
+  if(!item) item = prizes.find((p)=>String(p?.code)===String(prizeKey));
+  const images = Array.isArray(item?.images) ? item.images : [];
+  return {
+    title: keyTitle(prizeKey),
+    badge: keyBadge(prizeKey),
+    rarity: rarityKey(item?.rarity || prizeRarity || "blue"),
+    image: images.length ? pick(images) : "",
+  };
+}
+
+function launchWinConfetti(count=120){
+  const layer = $("winConfettiLayer");
+  if(!layer) return;
+  layer.innerHTML = "";
+  const colors = ["#ff6f61","#6ec3ff","#ffd166","#8ce99a","#d68bff","#ff9f43","#6f86ff","#f06292"];
+  for(let i=0;i<count;i++){
+    const el = document.createElement("div");
+    el.className = `win-confetti${Math.random() < 0.24 ? " streamer" : ""}`;
+    el.style.left = `${randint(2,98)}%`;
+    el.style.background = colors[randint(0, colors.length - 1)];
+    el.style.setProperty("--drift", `${randint(-140,140)}px`);
+    el.style.setProperty("--rot", `${randint(120,840)}deg`);
+    el.style.setProperty("--dur", `${(1.6 + Math.random()*1.8).toFixed(2)}s`);
+    el.style.setProperty("--delay", `${(Math.random()*0.35).toFixed(2)}s`);
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(), 4200);
+  }
+}
+
+function clearWinConfetti(){
+  const layer = $("winConfettiLayer");
+  if(layer) layer.innerHTML = "";
+}
+
+function openWinOverlay({ prizeKey="", prizeRarity=null, message="" }){
+  const box = $("winOverlay");
+  if(!box) return;
+  const meta = resolvePrizeForWin(prizeKey, prizeRarity);
+  const stamp = $("winPrizeStamp");
+  if(stamp){
+    stamp.classList.remove("rarity-blue","rarity-purple","rarity-red","rarity-yellow");
+    stamp.classList.add(rarityCss(meta.rarity));
+  }
+  if($("winPrizeImg")){
+    $("winPrizeImg").src = meta.image || "/static/prizes/stars_150.svg";
+  }
+  if($("winPrizeBadge")) $("winPrizeBadge").textContent = meta.badge || "Prize";
+  if($("winPrizeValue")) $("winPrizeValue").textContent = meta.title || "MADESIX";
+  if($("winPrizeHeading")) $("winPrizeHeading").textContent = meta.title || "Вы выиграли";
+  if($("winPrizeDescription")){
+    const txt = (message || "").trim() || "Награда начислена. Удача на вашей стороне.";
+    $("winPrizeDescription").textContent = txt;
+  }
+
+  launchWinConfetti(130);
+  openModal("winOverlay");
+}
+
 function launchDropFx(count=28){
   const layer=$("fxLayer");
   if(!layer) return;
@@ -330,6 +392,10 @@ function setupLiveWinsFeed(){
   ];
   const prizes=["Обувь","Толстовка","Скидка 20%","200 Stars","1000 Stars","Сертификат 3000₽","VIP-ключ"];
   const show=()=>{
+    // Do not overlap critical UI while modal/spin/win screen is active.
+    if(modalOpenCount > 0 || !$("caseSpinModal")?.classList.contains("hidden") || !$("winOverlay")?.classList.contains("hidden")){
+      return;
+    }
     const n=names[randint(0,names.length-1)];
     const p=prizes[randint(0,prizes.length-1)];
     text.textContent=`${n} выиграл: ${p}`;
@@ -398,8 +464,10 @@ function setupProfileIdentity(){
 
 function setBalance(balance){
   if($("balance")) $("balance").textContent=String(balance ?? "—");
+  if($("spinBalanceAmount")) $("spinBalanceAmount").textContent=String(balance ?? "—");
+  if($("winBalanceAmount")) $("winBalanceAmount").textContent=String(balance ?? "—");
   if($("balance-top")){
-    $("balance-top").innerHTML = `${balance ?? "—"} <img src="/static/brand/tg-stars.avif?v=1" alt="Stars" class="inline-block w-4 h-4 align-[-2px] stars-logo-inline"/>`;
+    $("balance-top").innerHTML = `${balance ?? "—"} <img src="/static/brand/tg-stars.avif?v=1" alt="Stars" class="inline-block w-4 h-4 stars-logo-inline"/>`;
   }
 }
 
@@ -408,6 +476,11 @@ function setTickets(s,b){
   if($("tBracelet")) $("tBracelet").textContent=String(b||0);
 
   const total=(s||0)+(b||0);
+  const vaultChip=$("openVaultChip");
+  if(vaultChip){
+    if(total>0) vaultChip.classList.add("has-tickets");
+    else vaultChip.classList.remove("has-tickets");
+  }
   const preview=$("vaultPreviewCard");
   if(preview){
     if(total>0) preview.classList.remove("hidden");
@@ -564,13 +637,14 @@ async function selectCase(c, {silent=true}={}){
   document.querySelectorAll(".roulette-card").forEach(x=>x.classList.remove("selected","ring-2","ring-white/40"));
   const cards=[...document.querySelectorAll(".roulette-card")];
   const idx=state.cases.findIndex(x=>x.id===c.id);
-  if(idx>=0 && cards[idx]) cards[idx].classList.add("selected","ring-2","ring-white/40");
+  if(idx>=0 && cards[idx]) cards[idx].classList.add("selected");
 
   if($("roulette-title")) $("roulette-title").textContent=c.title;
   if($("spin-cost")) $("spin-cost").textContent=String(c.cost);
   if($("spinCost")) $("spinCost").textContent=String(c.cost);
   if($("spinCostTitle")) $("spinCostTitle").textContent=String(c.cost);
   if($("spin-cost-inline")) $("spin-cost-inline").textContent=String(c.cost);
+  if($("spinCaseLabel")) $("spinCaseLabel").textContent = c.title || c.id;
 
   await buildReel(c.id, "reelModal");
   const openBtn=$("openSpinModalBtn");
@@ -907,11 +981,13 @@ async function doSpin(){
     const spinModal=$("caseSpinModal");
     spinModal?.classList.add("shadow-[0_0_40px_rgba(255,190,95,.35)]");
     setTimeout(()=>spinModal?.classList.remove("shadow-[0_0_40px_rgba(255,190,95,.35)]"), 900);
-    openResultOverlay({
-      badge:`Выигрыш · ${rarityLabel(res?.prize?.rarity)}`,
-      title:keyTitle(res.prize_key || ""),
-      text:res.message || "Результат начислен",
-      primary:"Продолжить"
+    spinModal?.classList.add("spin-win-zoom");
+    await sleep(260);
+    spinModal?.classList.remove("spin-win-zoom");
+    openWinOverlay({
+      prizeKey: res.prize_key || "",
+      prizeRarity: res?.prize?.rarity || null,
+      message: res.message || "Результат начислен"
     });
   }catch(e){
     const msg=String(e.message||"Ошибка");
@@ -956,17 +1032,52 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
     $("casePreviewClose")?.addEventListener("click", ()=>closeModal("casePreviewModal"));
     $("caseSpinClose")?.addEventListener("click", ()=>closeModal("caseSpinModal"));
+    $("caseSpinCloseFloating")?.addEventListener("click", ()=>closeModal("caseSpinModal"));
     $("ticketVaultClose")?.addEventListener("click", ()=>closeModal("ticketVaultModal"));
-    $("openVaultBtn")?.addEventListener("click", async ()=>{
+    const closeWinOverlay = ()=>{
+      closeModal("winOverlay");
+      clearWinConfetti();
+    };
+    $("winOverlayOk")?.addEventListener("click", closeWinOverlay);
+    $("winOverlayBack")?.addEventListener("click", closeWinOverlay);
+    $("winOverlayMenu")?.addEventListener("click", ()=>{
+      closeWinOverlay();
+      $("openProfileBtn")?.click();
+    });
+    $("nativeBackBtn")?.addEventListener("click", ()=>{
+      try{
+        if(tg && typeof tg.close === "function"){
+          tg.close();
+          return;
+        }
+      }catch{}
+      if(window.history.length > 1) window.history.back();
+    });
+    $("nativeMenuBtn")?.addEventListener("click", ()=>{
+      $("openProfileBtn")?.click();
+    });
+
+    const openVaultPanel = async ()=>{
       await loadInventory().catch(()=>{});
       openModal("ticketVaultModal");
-    });
-    $("openProfileBtn")?.addEventListener("click", async ()=>{
+    };
+    const openProfilePanel = async ()=>{
       await loadHistory().catch(()=>{});
       await loadMyReferrals().catch(()=>{});
       openModal("profileModal");
-    });
+    };
+    $("openVaultBtn")?.addEventListener("click", openVaultPanel);
+    $("openVaultChip")?.addEventListener("click", openVaultPanel);
+    $("openProfileBtn")?.addEventListener("click", openProfilePanel);
     $("profileClose")?.addEventListener("click", ()=>closeModal("profileModal"));
+    $("btn-roulette-info")?.addEventListener("click", ()=>{
+      openResultOverlay({
+        badge:"Механика",
+        title:"Как работает спин",
+        text:"Выберите кейс, откройте спин и дождитесь фиксации центрального слота. Награда начисляется автоматически.",
+        primary:"Понятно"
+      });
+    });
     $("eventBannerBtn")?.addEventListener("click", ()=>openModal("eventModal"));
     $("eventModalClose")?.addEventListener("click", ()=>closeModal("eventModal"));
     $("eventModalAction")?.addEventListener("click", ()=>{

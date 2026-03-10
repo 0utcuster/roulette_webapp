@@ -415,17 +415,17 @@
     }
     .live-toast{
       position: fixed;
-      left: 12px;
-      right: 12px;
-      top: 86px;
+      left: 50%;
+      width: min(92vw, 420px);
+      transform: translateX(-50%) translateY(8px);
+      bottom: calc(14px + env(safe-area-inset-bottom));
       z-index: 70;
       pointer-events: none;
-      transform: translateY(-8px);
       opacity: 0;
       transition: all .35s ease;
     }
     .live-toast.show{
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
     .fx-layer{
@@ -749,22 +749,27 @@
     }
     .stars-unit{
       display:inline-flex;
-      align-items:center;
+      align-items:baseline;
       gap:4px;
       white-space:nowrap;
+      line-height:1;
     }
     .stars-logo{
       width:1.12em;
       height:1.12em;
       object-fit:contain;
       display:inline-block;
-      vertical-align:0.06em;
+      vertical-align:-0.12em;
+      position:relative;
+      top:0.03em;
       filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255,255,255,.42));
     }
     .stars-logo-inline{
       width:1.08em !important;
       height:1.08em !important;
-      vertical-align:0.08em !important;
+      vertical-align:-0.12em !important;
+      position:relative;
+      top:0.03em;
       filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(255,255,255,.38));
     }
     .app-loader{
@@ -909,6 +914,1336 @@
       background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 42%);
       opacity:.34;
     }
+
+    /* Premium Overhaul */
+    :root{
+      --premium-bg-0:#070B14;
+      --premium-bg-1:#0B1220;
+      --premium-bg-2:#101A2E;
+      --premium-bg-3:#16233B;
+      --premium-indigo:#1A2340;
+      --premium-accent:#68B8FF;
+      --premium-accent-2:#8FE9FF;
+      --premium-gold:#F3C64D;
+      --premium-text:#F3F5F8;
+      --premium-muted:#9BA8BF;
+    }
+    html, body{
+      font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--premium-text);
+    }
+    .grad{
+      background:
+        radial-gradient(90% 70% at 50% 36%, rgba(75,132,255,.2), transparent 66%),
+        radial-gradient(95% 72% at 12% 0%, rgba(62,120,255,.18), transparent 68%),
+        radial-gradient(90% 70% at 90% 100%, rgba(93,116,255,.14), transparent 65%),
+        linear-gradient(180deg, var(--premium-bg-0) 0%, var(--premium-bg-1) 30%, var(--premium-bg-2) 72%, var(--premium-bg-3) 100%);
+    }
+    .grad::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 20% 24%, rgba(255,255,255,.26) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 74% 18%, rgba(255,255,255,.22) 0 1.1px, transparent 1.9px),
+        radial-gradient(circle at 55% 74%, rgba(255,255,255,.2) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 88% 62%, rgba(255,255,255,.18) 0 1px, transparent 1.8px);
+      background-size: 180px 180px, 220px 220px, 260px 260px, 190px 190px;
+      opacity:.22;
+    }
+    .grad::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        radial-gradient(120% 90% at 50% 52%, transparent 56%, rgba(2,5,14,.72) 100%);
+      opacity:.9;
+    }
+    .native-header{
+      display:grid;
+      grid-template-columns:auto auto;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:18px;
+      border:1px solid rgba(166,194,255,.18);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.01) 32%, rgba(11,18,37,.92)),
+        linear-gradient(180deg, rgba(17,30,58,.82), rgba(9,14,28,.93));
+      box-shadow:
+        0 12px 26px rgba(0,0,0,.38),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      backdrop-filter: blur(16px);
+    }
+    .native-header-btn{
+      border-radius:12px;
+      border:1px solid rgba(177,205,255,.2);
+      background: rgba(255,255,255,.06);
+      color: var(--premium-text);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 10px;
+      letter-spacing: .01em;
+    }
+    .native-header-center{
+      display:none;
+    }
+    .native-header-title{
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing:.01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .native-verify{
+      color:#7ED8FF;
+      font-size:12px;
+      vertical-align:1px;
+    }
+    .native-header-sub{
+      margin-top:1px;
+      color: var(--premium-muted);
+      font-size:10px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      display:none;
+    }
+    .native-menu-btn{
+      min-width:34px;
+      padding-left:0;
+      padding-right:0;
+      text-align:center;
+      font-size:18px;
+      line-height:1;
+    }
+    .floating-toolbar .card{
+      border-color: rgba(145,182,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.02) 32%, rgba(11,18,37,.94)),
+        linear-gradient(180deg, rgba(20,34,64,.84), rgba(10,16,30,.94));
+      box-shadow:
+        0 14px 24px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.14),
+        inset 0 -14px 22px rgba(0,0,0,.24);
+    }
+    .floating-balance-bar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-height:58px;
+      padding:10px 11px;
+      border-radius:22px;
+    }
+    .floating-brand{
+      min-width:0;
+      flex: 1 1 auto;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .floating-brand-logo{
+      width:34px;
+      height:34px;
+      flex:0 0 auto;
+      border-radius:12px;
+      border:1px solid rgba(179,213,255,.26);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
+      display:grid;
+      place-items:center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+    }
+    .floating-brand-top{
+      font-size:12px;
+      font-weight:800;
+      line-height:1.05;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      color:#EAF2FF;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .floating-brand-bottom{
+      margin-top:2px;
+      font-size:10px;
+      line-height:1;
+      color:rgba(211,227,255,.68);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .floating-balance{
+      flex: 0 0 auto;
+      padding:0 4px;
+      text-align:left;
+    }
+    .floating-balance-label{
+      font-size:10px;
+      line-height:1;
+      color:rgba(201,221,255,.7);
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .floating-balance-value{
+      margin-top:3px;
+      font-size:15px;
+      line-height:1;
+      font-weight:800;
+      letter-spacing:.01em;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      color:#F0F6FF;
+    }
+    .floating-actions{
+      flex:0 0 auto;
+      display:flex;
+      align-items:center;
+      gap:7px;
+    }
+    .floating-action-btn{
+      min-height:36px;
+      border-radius:12px;
+      border:1px solid rgba(164,201,255,.24);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)),
+        linear-gradient(180deg, rgba(16,27,53,.78), rgba(8,13,27,.9));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 8px 16px rgba(0,0,0,.26);
+      padding:6px 10px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:#DEEDFF;
+    }
+    .floating-action-btn.has-tickets{
+      border-color: rgba(243,198,77,.45);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        0 10px 18px rgba(0,0,0,.26),
+        0 0 20px rgba(243,198,77,.2);
+    }
+    .floating-action-btn svg{
+      width:14px;
+      height:14px;
+      fill: currentColor;
+      opacity:.86;
+      flex:0 0 auto;
+    }
+    .floating-action-text{
+      font-size:11px;
+      line-height:1;
+      font-weight:800;
+      white-space:nowrap;
+      letter-spacing:.01em;
+    }
+    .card{
+      border-radius: 24px;
+      border-color: rgba(137,172,245,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.015) 30%, rgba(10,16,33,.94)),
+        linear-gradient(180deg, rgba(18,31,58,.86), rgba(9,14,28,.95));
+      box-shadow:
+        0 18px 32px rgba(0,0,0,.38),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -18px 26px rgba(0,0,0,.26);
+      backdrop-filter: blur(16px);
+    }
+    .btn-primary{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,0) 26%),
+        linear-gradient(120deg, #8AB4FF 0%, #70C1FF 40%, #7DD3FC 70%, #93A8FF 100%);
+      border:1px solid rgba(164,214,255,.72);
+      color:#061325;
+      font-weight: 800;
+      box-shadow:
+        0 16px 30px rgba(88,162,255,.34),
+        inset 0 1px 0 rgba(255,255,255,.56),
+        inset 0 -2px 0 rgba(57,103,179,.32);
+      text-transform:none;
+      letter-spacing:.01em;
+    }
+    .btn-outline-strong{
+      border-color: rgba(158,193,255,.24);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)),
+        linear-gradient(180deg, rgba(16,28,55,.75), rgba(9,14,29,.84));
+      color:#d8e7ff;
+    }
+    #screen-roulette > .card,
+    #screen-roulette .card{
+      border-radius: 26px;
+    }
+    .roulette-card{
+      border-radius:22px;
+      border:1px solid rgba(153,190,255,.22);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.015) 34%, rgba(8,13,28,.93)),
+        linear-gradient(180deg, rgba(18,31,61,.84), rgba(10,15,30,.95));
+      box-shadow:
+        0 16px 30px rgba(0,0,0,.36),
+        inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .roulette-price-pill{
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+      color:#E8F4FF;
+      border-color: rgba(135,184,255,.44);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 30%),
+        linear-gradient(120deg, rgba(90,147,255,.36), rgba(106,214,255,.28));
+      box-shadow: 0 8px 14px rgba(61,123,217,.28), inset 0 1px 0 rgba(255,255,255,.24);
+    }
+    #caseSpinModal .card{
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(97,151,255,.2), transparent 62%),
+        radial-gradient(100% 80% at 50% 100%, rgba(104,79,194,.2), transparent 64%),
+        linear-gradient(180deg, rgba(10,16,34,.96), rgba(8,13,27,.98));
+      border-color: rgba(131,173,255,.24);
+      box-shadow:
+        0 28px 44px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -20px 30px rgba(0,0,0,.28);
+    }
+    .spin-viewport{
+      border-radius: 26px;
+      border-color: rgba(122,177,255,.32) !important;
+      background:
+        radial-gradient(90% 70% at 50% 50%, rgba(83,142,255,.2), rgba(25,44,74,.12) 55%, rgba(7,12,24,.92) 100%),
+        linear-gradient(180deg, rgba(14,24,48,.9), rgba(8,12,24,.96));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -16px 24px rgba(0,0,0,.25),
+        0 18px 28px rgba(0,0,0,.34);
+      isolation:isolate;
+    }
+    .spin-viewport::before{
+      content:"";
+      position:absolute;
+      left:14px;
+      right:14px;
+      top:50%;
+      height:124px;
+      transform: translateY(-50%);
+      border-radius:24px;
+      border:1px solid rgba(166,213,255,.34);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 40%),
+        linear-gradient(120deg, rgba(120,186,255,.14), rgba(157,123,255,.08));
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.05) inset,
+        0 0 20px rgba(118,195,255,.18),
+        inset 0 0 18px rgba(148,220,255,.14);
+      pointer-events:none;
+      z-index: 1;
+    }
+    .spin-viewport::after{
+      content:"";
+      position:absolute;
+      left:20%;
+      right:20%;
+      top:50%;
+      height:66px;
+      transform: translateY(-50%);
+      border-radius:999px;
+      background: radial-gradient(ellipse at center, rgba(135,223,255,.28), rgba(135,223,255,0) 72%);
+      filter: blur(10px);
+      pointer-events:none;
+      z-index: 1;
+    }
+    #reelModal{
+      position:relative;
+      z-index:2;
+      gap:14px !important;
+      padding-top:44px !important;
+      padding-bottom:44px !important;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    }
+    #reelModal .prize-card{
+      min-height: 116px;
+      border-radius: 24px;
+      opacity:.78;
+      transform: scale(.95);
+      transition: transform .28s ease, opacity .28s ease, filter .28s ease;
+      filter: saturate(.9) blur(.1px);
+    }
+    #reelModal .prize-card.is-target{
+      opacity:1;
+      transform: scale(1.02);
+      filter: saturate(1.08);
+      border-color: rgba(161,225,255,.56);
+      box-shadow:
+        0 0 0 1px rgba(183,229,255,.24),
+        0 0 26px rgba(126,214,255,.22),
+        inset 0 0 22px rgba(151,219,255,.14);
+    }
+    #reelModal .prize-img{
+      height: 126px;
+      padding-top: 4px;
+      object-fit: contain;
+      filter: saturate(1.1) drop-shadow(0 14px 20px rgba(0,0,0,.36));
+    }
+    #caseSpinModal .absolute.left-2 > div{
+      border-right-color: #7CD5FF !important;
+      filter: drop-shadow(0 0 10px rgba(124,213,255,.75)) !important;
+    }
+    #caseSpinModal .absolute.right-2 > div{
+      border-left-color: #8AB6FF !important;
+      filter: drop-shadow(0 0 10px rgba(138,182,255,.78)) !important;
+    }
+    #spinBtn{
+      border-radius: 999px !important;
+      min-height: 58px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: .01em;
+      box-shadow:
+        0 18px 30px rgba(88,165,255,.34),
+        inset 0 1px 0 rgba(255,255,255,.5),
+        0 0 28px rgba(113,200,255,.18);
+    }
+
+    /* Spin screen close to provided reference */
+    .spin-ref-backdrop{
+      background:
+        radial-gradient(120% 95% at 50% 38%, rgba(32,54,101,.44), transparent 66%),
+        linear-gradient(180deg, #050914 0%, #070D1E 42%, #070C1A 100%);
+      backdrop-filter: blur(8px);
+    }
+    .spin-ref-shell{
+      position: relative;
+      padding: 12px 10px calc(10px + env(safe-area-inset-bottom));
+      border-radius: 34px 34px 0 0;
+      overflow: hidden;
+      background:
+        radial-gradient(80% 58% at 50% 36%, rgba(30,52,101,.25), transparent 70%),
+        linear-gradient(180deg, #0A1228 0%, #091125 48%, #081024 100%);
+      border: 1px solid rgba(151,184,255,.16);
+      box-shadow:
+        0 30px 60px rgba(0,0,0,.58),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .spin-ref-shell::before{
+      content:"";
+      position:absolute;
+      inset: 84px 8px 112px;
+      border-radius: 28px;
+      pointer-events:none;
+      background: repeating-conic-gradient(
+        from -6deg at 50% 50%,
+        rgba(255,255,255,.03) 0deg 14deg,
+        rgba(255,255,255,0) 14deg 32deg
+      );
+      opacity:.35;
+      mask-image: radial-gradient(circle at 50% 50%, #000 34%, transparent 92%);
+    }
+    .spin-ref-shell::after{
+      content:"";
+      position:absolute;
+      inset: 84px 8px 112px;
+      pointer-events:none;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 18% 34%, rgba(255,255,255,.22) 0 1.2px, transparent 1.8px),
+        radial-gradient(circle at 84% 42%, rgba(255,255,255,.2) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 66% 68%, rgba(255,255,255,.16) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 28% 76%, rgba(255,255,255,.14) 0 1.1px, transparent 2px);
+      opacity:.3;
+    }
+    .spin-ref-topbar{
+      position: relative;
+      z-index:2;
+      display:grid;
+      grid-template-columns:auto auto;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding: 8px 8px 6px;
+    }
+    .spin-ref-topbar{
+      display:none !important;
+    }
+    .spin-ref-navbtn{
+      border:0;
+      color:#E9F0FF;
+      font-size: 16px;
+      font-weight:700;
+      padding: 6px 8px;
+      background: transparent;
+      opacity:.94;
+    }
+    .spin-ref-navdots{
+      font-size: 24px;
+      line-height: .6;
+      letter-spacing: .05em;
+    }
+    .spin-ref-app{
+      display:none;
+    }
+    .spin-ref-app-title{
+      font-size: 33px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: .01em;
+      transform: scale(.4);
+      transform-origin: center center;
+      margin-top: -10px;
+      margin-bottom: -8px;
+      white-space: nowrap;
+    }
+    .spin-ref-app-sub{
+      color: rgba(209,224,255,.66);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      display:none;
+    }
+    .spin-ref-balance{
+      position: relative;
+      z-index:2;
+      margin: calc(8px + env(safe-area-inset-top)) 6px 8px;
+      border-radius: 18px;
+      border:1px solid rgba(156,187,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.02) 36%, rgba(11,21,44,.9)),
+        linear-gradient(180deg, rgba(18,32,59,.8), rgba(9,14,30,.9));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 10px 20px rgba(0,0,0,.34);
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .spin-ref-balance-left{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing:.01em;
+      color: #EAF4FF;
+    }
+    .spin-ref-balance-left .stars-logo{
+      width: 1.3em;
+      height: 1.3em;
+    }
+    .spin-ref-balance-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .spin-ref-miniicon{
+      position:relative;
+      width:22px;
+      height:22px;
+      border-radius:999px;
+      border:1px solid rgba(170,205,255,.3);
+      background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.05));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 12px rgba(0,0,0,.24);
+    }
+    .spin-ref-miniicon::before{
+      content:"";
+      position:absolute;
+      inset:5px;
+      border-radius: 5px;
+      border:1px solid rgba(224,241,255,.56);
+      background: rgba(163,214,255,.3);
+    }
+    .spin-ref-miniicon-gift::before{
+      inset:4px;
+      border-radius:4px;
+      background:
+        linear-gradient(90deg, transparent 45%, rgba(233,245,255,.8) 45% 55%, transparent 55%),
+        linear-gradient(180deg, transparent 45%, rgba(233,245,255,.8) 45% 55%, transparent 55%),
+        rgba(164,210,255,.28);
+    }
+    .spin-ref-miniicon-ticket::before{
+      inset:5px 4px;
+      border-radius:6px;
+      background:
+        radial-gradient(circle at left center, transparent 0 1.5px, rgba(164,210,255,.42) 1.6px),
+        radial-gradient(circle at right center, transparent 0 1.5px, rgba(164,210,255,.42) 1.6px),
+        rgba(164,210,255,.28);
+    }
+    .spin-ref-close-fab{
+      position:absolute;
+      top: calc(10px + env(safe-area-inset-top));
+      right: 10px;
+      z-index: 9;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(177,208,255,.28);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04)),
+        linear-gradient(180deg, rgba(16,28,54,.78), rgba(9,14,30,.9));
+      color:#EAF2FF;
+      font-size:20px;
+      line-height:1;
+      display:grid;
+      place-items:center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 8px 16px rgba(0,0,0,.28);
+    }
+    .spin-ref-stage{
+      position: relative;
+      z-index: 2;
+      flex: 1 1 auto;
+      min-height: 420px;
+      display:flex;
+      flex-direction:column;
+      padding: 2px 4px 4px;
+    }
+    .spin-ref-case{
+      text-align:center;
+      color: rgba(220,235,255,.84);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .spin-ref-viewport{
+      position: relative;
+      flex: 1 1 auto;
+      border: 0 !important;
+      border-radius: 26px;
+      background: transparent !important;
+      box-shadow: none !important;
+      min-height: 390px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .spin-ref-viewport::before,
+    .spin-ref-viewport::after{
+      content:none;
+    }
+    .spin-ref-viewport .reel{
+      position: relative;
+      z-index:2;
+      padding-top: 132px !important;
+      padding-bottom: 132px !important;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    }
+    .spin-ref-arrows{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+    }
+    .spin-ref-arrow{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 34px;
+      display:grid;
+      place-items:center;
+      border-radius: 999px;
+      color:#EAF3FF;
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 900;
+      background:
+        linear-gradient(125deg, rgba(111,210,255,.78), rgba(205,136,255,.78));
+      border: 1px solid rgba(188,222,255,.62);
+      box-shadow:
+        0 0 18px rgba(126,205,255,.58),
+        0 0 28px rgba(213,141,255,.34),
+        inset 0 1px 0 rgba(255,255,255,.36);
+      opacity:.96;
+    }
+    .spin-ref-arrow-left{
+      left: 10px;
+      transform: translateY(-50%);
+    }
+    .spin-ref-arrow-right{
+      right: 10px;
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .spin-ref-viewport #reelModal .prize-card{
+      min-height: 200px;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      opacity:.92;
+      transform: scale(.94);
+      filter: blur(0) saturate(1.08);
+      transition: transform .32s ease, opacity .32s ease, filter .32s ease;
+      overflow: visible;
+    }
+    .spin-ref-viewport #reelModal .prize-card::before,
+    .spin-ref-viewport #reelModal .prize-card::after,
+    .spin-ref-viewport #reelModal .prize-overlay{
+      display:none !important;
+      content:none !important;
+    }
+    .spin-ref-viewport #reelModal .prize-backglow{
+      top: 52%;
+      width: 68%;
+      height: 58px;
+      opacity:.3;
+      filter: blur(14px);
+      z-index:0;
+    }
+    .spin-ref-viewport #reelModal .prize-img{
+      height: 140px;
+      width: 100%;
+      object-fit: contain;
+      object-position: center;
+      padding: 0;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,.36));
+      z-index:1;
+    }
+    .spin-ref-viewport #reelModal .prize-badge,
+    .spin-ref-viewport #reelModal .prize-title{
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%) rotate(-2.2deg);
+      border-radius: 4px;
+      border: 0;
+      backdrop-filter: none;
+      padding: 4px 9px;
+      background: #F2F6FF;
+      color: #18263F !important;
+      box-shadow: 0 6px 12px rgba(0,0,0,.26);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .01em;
+      white-space: nowrap;
+      top: auto;
+    }
+    .spin-ref-viewport #reelModal .prize-badge{
+      bottom: 24px;
+      z-index:4;
+    }
+    .spin-ref-viewport #reelModal .prize-title{
+      bottom: -2px;
+      z-index:5;
+      transform: translateX(-50%) rotate(-2.2deg);
+    }
+    .spin-ref-viewport #reelModal .prize-card.is-target{
+      opacity:1;
+      transform: scale(1.07);
+      filter: blur(0) saturate(1.14);
+    }
+    .spin-ref-viewport #reelModal .prize-card.is-target .prize-backglow{
+      opacity:.44;
+    }
+    .spin-ref-footer{
+      position: relative;
+      z-index:2;
+      padding: 6px 8px 2px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .spin-ref-casechip{
+      text-align:center;
+      font-size: 11px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(214,227,249,.62);
+    }
+    .spin-ref-cta{
+      width:100%;
+      min-height:56px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.04)),
+        linear-gradient(180deg, #7C8396, #6A7287) !important;
+      color: rgba(245,248,255,.9) !important;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing:.01em;
+      text-transform:none;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.24),
+        0 10px 22px rgba(0,0,0,.38) !important;
+    }
+    .spin-ref-cta:not(:disabled){
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.07)),
+        linear-gradient(180deg, #8C95AB, #727C94) !important;
+      color:#F7FAFF !important;
+    }
+    .spin-ref-cta:disabled{
+      opacity:.72;
+    }
+    #caseSpinModal.spin-win-zoom .spin-ref-viewport #reelModal .prize-card.is-target{
+      transform: scale(1.16) !important;
+      filter: saturate(1.2) brightness(1.06) !important;
+      transition: transform .28s ease, filter .28s ease;
+    }
+
+    /* Win overlay */
+    .win-overlay{
+      background:
+        radial-gradient(90% 70% at 50% 38%, rgba(35,66,128,.38), transparent 66%),
+        linear-gradient(180deg, #060B19 0%, #071027 48%, #081024 100%);
+      overflow:hidden;
+    }
+    .win-overlay::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: repeating-conic-gradient(
+        from -8deg at 50% 48%,
+        rgba(255,255,255,.035) 0deg 15deg,
+        rgba(255,255,255,0) 15deg 31deg
+      );
+      mask-image: radial-gradient(circle at 50% 48%, #000 18%, transparent 82%);
+      opacity:.32;
+    }
+    .win-overlay-inner{
+      position:relative;
+      z-index:2;
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+    }
+    .win-overlay-panel{
+      border-radius: 28px;
+      border:1px solid rgba(151,184,255,.18);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.01) 35%, rgba(8,15,32,.94)),
+        linear-gradient(180deg, rgba(14,26,51,.84), rgba(8,14,28,.95));
+      box-shadow:
+        0 24px 44px rgba(0,0,0,.5),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      min-height: calc(100dvh - 22px - env(safe-area-inset-bottom));
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .win-overlay-head{
+      padding: 8px 10px 6px;
+      display:grid;
+      grid-template-columns:auto auto;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .win-overlay-head{
+      display:none !important;
+    }
+    .win-head-btn{
+      border:0;
+      background:transparent;
+      color:#E9F1FF;
+      font-size:17px;
+      font-weight:700;
+      padding:6px 4px;
+    }
+    .win-head-mid{
+      display:none;
+    }
+    .win-head-title{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:.01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .win-head-sub{
+      margin-top:1px;
+      font-size:10px;
+      color:rgba(207,224,255,.66);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      display:none;
+    }
+    .win-balance-row{
+      margin: calc(10px + env(safe-area-inset-top)) 10px 0;
+      border-radius:16px;
+      border:1px solid rgba(160,194,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.03)),
+        linear-gradient(180deg, rgba(14,24,47,.74), rgba(8,14,28,.9));
+      padding: 9px 11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .win-balance-main{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:17px;
+      font-weight:800;
+      color:#EDF6FF;
+    }
+    .win-balance-side{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .win-mini-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(170,210,255,.58);
+      box-shadow:0 0 10px rgba(170,210,255,.45);
+    }
+    .win-body{
+      position:relative;
+      flex:1 1 auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      text-align:center;
+      padding: 18px 18px 12px;
+      overflow:hidden;
+    }
+    .win-prize-wrap{
+      position:relative;
+      width:min(74vw, 250px);
+      height:min(74vw, 250px);
+      margin-top: 10px;
+      margin-bottom: 12px;
+      animation: winPrizeIn .48s cubic-bezier(.2,.85,.28,1.15);
+    }
+    @keyframes winPrizeIn{
+      0%{ transform: translateY(16px) scale(.8); opacity:0; }
+      100%{ transform: translateY(0) scale(1); opacity:1; }
+    }
+    .win-prize-stamp{
+      position:absolute;
+      inset:0;
+      border-radius:30px;
+      border:2px solid rgba(233,243,255,.7);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.05) 34%, rgba(170,200,255,.18)),
+        linear-gradient(180deg, #D9E4FF, #C7D7FF);
+      box-shadow:
+        0 18px 30px rgba(0,0,0,.36),
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -10px 18px rgba(131,160,214,.36);
+    }
+    .win-prize-stamp.rarity-blue{
+      box-shadow:
+        0 18px 30px rgba(0,0,0,.36),
+        0 0 20px rgba(106,195,255,.24),
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -10px 18px rgba(131,160,214,.36);
+    }
+    .win-prize-stamp.rarity-purple{
+      box-shadow:
+        0 18px 30px rgba(0,0,0,.36),
+        0 0 22px rgba(183,122,255,.24),
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -10px 18px rgba(151,122,214,.36);
+    }
+    .win-prize-stamp.rarity-red{
+      box-shadow:
+        0 18px 30px rgba(0,0,0,.36),
+        0 0 22px rgba(255,122,122,.24),
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -10px 18px rgba(214,122,142,.36);
+    }
+    .win-prize-stamp.rarity-yellow{
+      box-shadow:
+        0 18px 30px rgba(0,0,0,.36),
+        0 0 24px rgba(255,214,110,.26),
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -10px 18px rgba(214,178,122,.4);
+    }
+    .win-prize-stamp::before{
+      content:"";
+      position:absolute;
+      inset:12px;
+      border-radius:22px;
+      border:1px solid rgba(248,253,255,.72);
+      background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.06));
+      box-shadow: inset 0 0 14px rgba(124,152,214,.25);
+    }
+    .win-prize-img{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:66%;
+      height:66%;
+      transform: translate(-50%, -50%);
+      object-fit:contain;
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.36));
+      z-index:2;
+    }
+    .win-sticker{
+      position:absolute;
+      right:-10px;
+      border-radius:4px;
+      background:#F2F6FF;
+      color:#1A2742;
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.01em;
+      padding: 5px 11px;
+      box-shadow: 0 8px 16px rgba(0,0,0,.26);
+      transform: rotate(-2deg);
+      z-index:3;
+    }
+    .win-sticker-type{ bottom:42px; }
+    .win-sticker-value{
+      bottom:6px;
+      right:8px;
+      color:#6A4FA4;
+      font-size:15px;
+      font-weight:900;
+    }
+    .win-heading{
+      margin-top: 8px;
+      font-size: 48px;
+      line-height: .96;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      color:#EAF3FF;
+      text-shadow: 0 10px 24px rgba(0,0,0,.34);
+    }
+    .win-text{
+      margin-top: 10px;
+      max-width: 320px;
+      color: rgba(227,238,255,.86);
+      font-size: 16px;
+      line-height: 1.36;
+      font-weight:600;
+    }
+    .win-cta-wrap{
+      margin-top:auto;
+      width:100%;
+      padding: 10px 2px 0;
+    }
+    .win-cta{
+      width:100%;
+      min-height:58px;
+      border-radius:20px;
+      border:1px solid rgba(162,203,255,.55);
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.2) 8%, rgba(255,255,255,.04) 36%, rgba(255,255,255,.14) 64%, rgba(255,255,255,.04) 92%),
+        linear-gradient(180deg, #2E6BDB, #1C4EAF);
+      color:#E9F4FF;
+      font-size:36px;
+      font-weight:900;
+      line-height:1;
+      letter-spacing:.01em;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.44),
+        0 14px 26px rgba(35,93,210,.38);
+    }
+    .win-confetti-layer{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:4;
+    }
+    .win-confetti{
+      position:absolute;
+      top:-14vh;
+      left:0;
+      width:8px;
+      height:22px;
+      border-radius:2px;
+      opacity:0;
+      transform: translate3d(0,0,0) rotate(0deg);
+      animation: winConfettiFall var(--dur,2.4s) linear var(--delay,0s) forwards;
+      box-shadow: 0 0 6px rgba(255,255,255,.16);
+    }
+    .win-confetti.streamer{
+      width:5px;
+      height:30px;
+      border-radius:8px;
+    }
+    @keyframes winConfettiFall{
+      0%{ transform: translate3d(0,-8vh,0) rotate(0deg); opacity:0; }
+      10%{ opacity:1; }
+      100%{ transform: translate3d(var(--drift,0px),112vh,0) rotate(var(--rot,260deg)); opacity:.96; }
+    }
+
+    /* Unified app-wide style to match spin screen */
+    body.grad{
+      background:
+        radial-gradient(95% 68% at 50% 26%, rgba(30,54,108,.34), transparent 64%),
+        radial-gradient(80% 60% at 50% 88%, rgba(53,74,126,.22), transparent 66%),
+        linear-gradient(180deg, #040913 0%, #071124 48%, #060E1E 100%) !important;
+    }
+    .native-header{
+      border-radius: 20px;
+      border-color: rgba(148,182,255,.2);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 32%, rgba(10,18,38,.94)),
+        linear-gradient(180deg, rgba(15,27,53,.85), rgba(8,14,28,.94));
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.36),
+        inset 0 1px 0 rgba(255,255,255,.13);
+    }
+    .native-header{
+      display:none !important;
+    }
+    .card{
+      border-radius: 24px !important;
+      border: 1px solid rgba(142,177,245,.19) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.012) 34%, rgba(8,15,32,.94)),
+        linear-gradient(180deg, rgba(16,28,55,.84), rgba(8,13,27,.94)) !important;
+      box-shadow:
+        0 18px 34px rgba(0,0,0,.42),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -18px 26px rgba(0,0,0,.24) !important;
+      backdrop-filter: blur(16px) saturate(1.04);
+    }
+    header .card,
+    #screen-roulette .card,
+    .floating-toolbar .card{
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+    header .card::before,
+    #screen-roulette .card::before,
+    .floating-toolbar .card::before{
+      display:none !important;
+      content:none !important;
+    }
+    .showcase3d,
+    .showcase3d-card,
+    .hit-season-card{
+      border-color: transparent !important;
+      border-width: 0 !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.012) 34%, rgba(8,15,32,.94)),
+        linear-gradient(180deg, rgba(16,28,55,.84), rgba(8,13,27,.94)) !important;
+      box-shadow:
+        0 18px 34px rgba(0,0,0,.4),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -18px 26px rgba(0,0,0,.24) !important;
+    }
+    .btn-primary:not(.spin-ref-cta){
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.04)),
+        linear-gradient(120deg, #90B7FF 0%, #73C4FF 55%, #92AFFF 100%) !important;
+      color:#041427 !important;
+      border: 1px solid rgba(168,214,255,.74) !important;
+      box-shadow:
+        0 14px 26px rgba(95,157,255,.34),
+        inset 0 1px 0 rgba(255,255,255,.54),
+        inset 0 -2px 0 rgba(46,86,149,.34) !important;
+      text-transform: none;
+      letter-spacing: .01em;
+      font-weight: 800;
+    }
+    .btn-outline-strong,
+    #depositCancel,
+    #withdrawCancel,
+    #profileClose,
+    #casePreviewClose,
+    #eventModalClose{
+      border-color: rgba(166,197,255,.22) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03)),
+        linear-gradient(180deg, rgba(15,27,53,.76), rgba(8,13,27,.9)) !important;
+      color:#DCE9FF !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 16px rgba(0,0,0,.26);
+    }
+    .modal-backdrop{
+      background: rgba(3,7,17,.76) !important;
+      backdrop-filter: blur(12px) saturate(1.06) !important;
+    }
+    #eventBannerBtn{
+      border-radius: 24px;
+      border-color: rgba(152,186,255,.22);
+      box-shadow:
+        0 16px 28px rgba(0,0,0,.38),
+        inset 0 1px 0 rgba(255,255,255,.1);
+      overflow:hidden;
+    }
+    #eventBannerBtn #eventBannerImg{
+      filter: saturate(1.08) contrast(1.02) brightness(.9);
+    }
+    #screen-roulette{
+      position: relative;
+      isolation: isolate;
+    }
+    #screen-roulette::before{
+      content:"";
+      position:absolute;
+      inset: 90px 6% auto;
+      height: 460px;
+      border-radius: 999px;
+      pointer-events:none;
+      z-index: -1;
+      background: radial-gradient(ellipse at center, rgba(108,170,255,.18), rgba(108,170,255,0) 72%);
+      filter: blur(24px);
+      opacity:.82;
+    }
+    .roulette-card{
+      border-radius: 22px !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .roulette-card::before,
+    .roulette-card::after{
+      display:none !important;
+      content:none !important;
+    }
+    .roulette-card.selected{
+      box-shadow: none !important;
+      transform: translateY(-1px);
+    }
+    #roulette-grid .roulette-card{
+      -webkit-appearance: none !important;
+      appearance: none !important;
+      background: transparent !important;
+      border: 0 !important;
+      outline: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    #roulette-grid .roulette-card::before,
+    #roulette-grid .roulette-card::after{
+      display:none !important;
+      content:none !important;
+      border:0 !important;
+      box-shadow:none !important;
+      background: transparent !important;
+    }
+    #roulette-grid .roulette-card .roulette-case-art,
+    #roulette-grid .roulette-card .roulette-case-meta{
+      background: transparent !important;
+      border: 0 !important;
+      outline: 0 !important;
+      box-shadow: none !important;
+    }
+    .roulette-case-art{
+      height: 188px;
+      padding-top: 10px;
+    }
+    .roulette-case-art img{
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.34));
+    }
+    .roulette-case-name{
+      font-size: 13px;
+      letter-spacing:.02em;
+      text-transform: uppercase;
+      color:#EAF2FF;
+    }
+    .roulette-price-pill{
+      min-width: 84px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: #EAF4FF !important;
+      border: 1px solid rgba(145,198,255,.44) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.04)),
+        linear-gradient(120deg, rgba(89,143,255,.34), rgba(112,210,255,.28)) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.26),
+        0 8px 14px rgba(67,124,214,.28) !important;
+    }
+    #openSpinModalBtn{
+      min-height: 54px;
+      border-radius: 18px !important;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+    .case-square-art{
+      border-radius: 22px;
+      border-color: transparent;
+      border-width: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.012) 34%, rgba(8,15,32,.94)),
+        linear-gradient(180deg, rgba(16,28,55,.84), rgba(8,13,27,.94));
+      box-shadow:
+        0 16px 28px rgba(0,0,0,.4),
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -16px 24px rgba(0,0,0,.24);
+    }
+    #casePreviewItems > div,
+    #history > div,
+    #myReferrals > div,
+    #ticketLotsList > div,
+    #inventoryList > div{
+      border-color: rgba(148,184,248,.18) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.01) 34%, rgba(8,14,30,.9)),
+        linear-gradient(180deg, rgba(14,24,47,.76), rgba(9,14,28,.88)) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.1),
+        0 10px 18px rgba(0,0,0,.24);
+    }
+    #depositAmount,
+    #withdrawAmount,
+    #refLink{
+      border-color: rgba(159,193,255,.24) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+        rgba(8,13,27,.58) !important;
+      color:#F0F6FF;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .case-tag{
+      border-radius: 7px !important;
+      border: 0 !important;
+      color:#152541 !important;
+      background: #EEF5FF !important;
+      box-shadow: 0 6px 12px rgba(0,0,0,.24);
+      font-weight: 900;
+      letter-spacing:.01em;
+      text-transform: none;
+    }
+    .stars-logo,
+    .stars-logo-inline{
+      filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(170,220,255,.42));
+      vertical-align: -0.12em !important;
+      position: relative;
+      top: 0.03em;
+    }
+    .stars-unit{ align-items: baseline !important; line-height: 1; }
+
+    @media (max-width: 420px){
+      .native-header-btn{ padding: 6px 9px; font-size: 11px; }
+      .native-header-title{ font-size: 13px; }
+      .floating-balance-bar{ gap:8px; padding:9px 9px; }
+      .floating-brand-logo{ width:30px; height:30px; border-radius:10px; }
+      .floating-brand-top{ font-size:11px; }
+      .floating-brand-bottom{ font-size:9px; }
+      .floating-balance-value{ font-size:14px; }
+      .floating-action-btn{ min-height:34px; padding:6px 8px; }
+      .floating-action-text{ font-size:10px; }
+      .spin-ref-shell{ border-radius: 30px 30px 0 0; padding-left:8px; padding-right:8px; }
+      .spin-ref-stage{ min-height: 360px; }
+      .spin-ref-viewport{ min-height: 360px; }
+      .spin-ref-viewport #reelModal .prize-card{ min-height: 176px; }
+      .spin-ref-viewport #reelModal .prize-img{ height: 126px; }
+      .spin-ref-cta{ min-height:54px; font-size:21px; }
+      .win-heading{ font-size: 42px; }
+      .win-text{ font-size: 15px; }
+      .win-cta{ font-size: 32px; min-height:56px; }
+      #spinBtn{ font-size: 18px; min-height: 54px; }
+    }
   </style>
 </head>
 
@@ -932,24 +2267,48 @@
   <canvas id="polyBgCanvas" class="poly-bg-canvas" aria-hidden="true"></canvas>
   <div class="min-h-screen safe-pad relative z-10">
     <header class="px-4 pt-5">
-      <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-stretch">
-        <div class="card rounded-2xl px-3 h-12 min-w-0 flex items-center gap-2">
-          <div class="h-8 w-8 rounded-xl bg-white/10 border border-white/15 grid place-items-center shrink-0 overflow-hidden">
-            <img src="/static/brand/madesix-logo.svg" alt="MADESIX logo" class="w-6 h-6 object-contain"/>
+      <div class="native-header">
+        <button id="nativeBackBtn" class="native-header-btn" type="button">‹ Назад</button>
+        <div class="native-header-center">
+          <div class="native-header-title">MADESIX <span class="native-verify">✓</span></div>
+          <div class="native-header-sub">мини-приложение</div>
+        </div>
+        <button id="nativeMenuBtn" class="native-header-btn native-menu-btn" type="button">⋯</button>
+      </div>
+
+      <div class="mt-3 floating-toolbar">
+        <div class="card floating-balance-bar">
+          <div class="floating-brand">
+            <div class="floating-brand-logo">
+              <img src="/static/brand/madesix-logo.svg" alt="MADESIX logo" class="w-6 h-6 object-contain"/>
+            </div>
+            <div class="min-w-0">
+              <div class="floating-brand-top">MADESIX</div>
+              <div class="floating-brand-bottom">Premium Cases</div>
+            </div>
           </div>
-          <div class="min-w-0">
-            <div class="text-[10px] uppercase tracking-wide text-white/60 leading-none">Premium Cases</div>
-            <div class="text-sm font-extrabold tracking-tight truncate">MADESIX</div>
+          <div class="floating-balance">
+            <div class="floating-balance-label">Баланс</div>
+            <div class="floating-balance-value">
+              <span id="balance">—</span>
+              <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
+            </div>
+          </div>
+          <div class="floating-actions">
+            <button id="openVaultChip" class="floating-action-btn" type="button" aria-label="Открыть инвентарь">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7.2c0-1.2 1-2.2 2.2-2.2h11.6c1.2 0 2.2 1 2.2 2.2v9.6c0 1.2-1 2.2-2.2 2.2H6.2C5 19 4 18 4 16.8zm2.3-.8a.8.8 0 0 0-.8.8v1h13v-1a.8.8 0 0 0-.8-.8z"/>
+              </svg>
+              <div class="floating-action-text"><span id="tSneakers">0</span>/<span id="tBracelet">0</span></div>
+            </button>
+            <button id="openProfileBtn" class="floating-action-btn" type="button" aria-label="Открыть меню">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12.7a4.1 4.1 0 1 0-4.1-4.1 4.1 4.1 0 0 0 4.1 4.1m0 2c-3.8 0-7 1.9-7 4.2 0 .4.3.8.8.8h12.4c.5 0 .8-.4.8-.8 0-2.3-3.2-4.2-7-4.2"/>
+              </svg>
+              <div class="floating-action-text">Меню</div>
+            </button>
           </div>
         </div>
-        <div class="card rounded-2xl px-3 h-12 min-w-[120px] flex flex-col justify-center">
-          <div class="text-[10px] text-white/65 leading-none">Баланс</div>
-          <div class="font-black text-sm tracking-tight">
-            <span id="balance">—</span>
-            <span class="stars-unit text-amber-300"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
-          </div>
-        </div>
-        <button id="openProfileBtn" class="btn rounded-2xl bg-white/10 border border-white/15 h-12 px-4 text-xs font-extrabold whitespace-nowrap">Профиль</button>
       </div>
 
       <div class="mt-4 card rounded-3xl p-4">
@@ -1026,8 +2385,8 @@
       <section id="screen-roulette" class="space-y-4">
         <div>
           <div class="flex items-center justify-between">
-            <div class="text-sm font-extrabold tracking-tight text-white/90">Выберите рулетку</div>
-            <button id="btn-roulette-info" class="text-xs font-bold text-white/60 hover:text-white/90">Правила</button>
+            <div class="text-sm font-extrabold tracking-tight text-white/90">Выберите кейс</div>
+            <button id="btn-roulette-info" class="text-xs font-bold text-white/60 hover:text-white/90">Механика</button>
           </div>
           <div id="roulette-grid" class="mt-2 grid grid-cols-2 gap-3"></div>
         </div>
@@ -1054,7 +2413,7 @@
                 Крутите за <span id="spinCostTitle">—</span>
                 <span class="stars-unit"><img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/></span>
               </div>
-              <div class="text-xs text-white/70 mt-1">Выигрывайте вещи, скидки и Stars. Редкие механики открываются по ходу игры.</div>
+              <div class="text-xs text-white/70 mt-1">Центральный слот фиксируется в фокусе, редкие награды подсвечены и анимированы.</div>
             </div>
             <div class="text-right">
               <div class="text-[11px] text-white/70">Серия</div>
@@ -1064,8 +2423,8 @@
           </div>
 
           <div class="mt-4 rounded-3xl border border-white/15 bg-white/5 p-4">
-            <div class="text-sm font-extrabold">Окно открытия кейса</div>
-            <div class="text-xs text-white/70 mt-1">После выбора кейса откроется отдельное окно с прокруткой.</div>
+            <div class="text-sm font-extrabold">Reward Spin Chamber</div>
+            <div class="text-xs text-white/70 mt-1">Полноэкранная прокрутка с мягким blur, glow и фокусом на текущем призе.</div>
           </div>
 
           <button id="openSpinModalBtn" class="btn btn-primary mt-4 w-full rounded-2xl font-extrabold py-4 opacity-50" disabled>Сначала выберите кейс</button>
@@ -1165,6 +2524,46 @@
     </div>
   </div>
 
+  <div id="winOverlay" class="hidden fixed inset-0 z-[69] win-overlay">
+    <div class="win-overlay-inner">
+      <div class="win-overlay-panel result-pop">
+        <div class="win-overlay-head">
+          <button id="winOverlayBack" class="win-head-btn" type="button">‹ Назад</button>
+          <div class="win-head-mid">
+            <div class="win-head-title">MADESIX <span class="native-verify">✓</span></div>
+            <div class="win-head-sub">мини-приложение</div>
+          </div>
+          <button id="winOverlayMenu" class="win-head-btn" type="button">⋯</button>
+        </div>
+        <div class="win-balance-row">
+          <div class="win-balance-main">
+            <img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/>
+            <span id="winBalanceAmount">—</span>
+          </div>
+          <div class="win-balance-side">
+            <span class="win-mini-dot"></span>
+            <span class="win-mini-dot"></span>
+          </div>
+        </div>
+
+        <div class="win-body">
+          <div id="winConfettiLayer" class="win-confetti-layer"></div>
+          <div class="win-prize-wrap">
+            <div id="winPrizeStamp" class="win-prize-stamp rarity-blue"></div>
+            <img id="winPrizeImg" class="win-prize-img" src="/static/prizes/stars_150.svg" alt="Prize"/>
+            <div id="winPrizeBadge" class="win-sticker win-sticker-type">Prize</div>
+            <div id="winPrizeValue" class="win-sticker win-sticker-value">MADESIX</div>
+          </div>
+          <div id="winPrizeHeading" class="win-heading">Вы выиграли</div>
+          <div id="winPrizeDescription" class="win-text">Награда начислена на ваш аккаунт.</div>
+          <div class="win-cta-wrap">
+            <button id="winOverlayOk" class="win-cta" type="button">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="liveWinToast" class="live-toast">
     <div class="rounded-2xl border border-white/20 bg-[#0f1635]/95 px-3 py-2 shadow-2xl">
       <div class="text-[10px] text-white/60 uppercase">Live drop</div>
@@ -1244,33 +2643,45 @@
   </div>
 
   <!-- Spin modal -->
-  <div id="caseSpinModal" class="hidden fixed inset-0 modal-backdrop z-[55]">
-    <div class="h-[100dvh] overflow-y-auto flex items-stretch justify-center px-0 sm:px-3 py-0 sm:py-3">
-      <div class="card w-full max-w-md rounded-none sm:rounded-3xl p-4 result-pop flex flex-col min-h-[100dvh] sm:min-h-[calc(100dvh-24px)]">
-        <div class="flex items-center justify-between gap-2">
-          <div>
-            <div class="text-xs text-white/70">Открытие кейса</div>
-            <div id="spinModalTitle" class="text-lg font-black">Кейс</div>
+  <div id="caseSpinModal" class="hidden fixed inset-0 z-[55] spin-ref-backdrop">
+    <div class="h-[100dvh] overflow-y-auto flex items-stretch justify-center px-0 py-0">
+      <div class="spin-ref-shell w-full max-w-md result-pop min-h-[100dvh] flex flex-col">
+        <button id="caseSpinCloseFloating" class="spin-ref-close-fab" type="button" aria-label="Закрыть">×</button>
+        <div class="spin-ref-topbar">
+          <button id="caseSpinClose" class="spin-ref-navbtn" type="button">‹ Назад</button>
+          <div class="spin-ref-app">
+            <div class="spin-ref-app-title">MADESIX <span class="native-verify">✓</span></div>
+            <div class="spin-ref-app-sub">мини-приложение</div>
           </div>
-          <button id="caseSpinClose" class="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs font-extrabold">×</button>
+          <button class="spin-ref-navbtn spin-ref-navdots" type="button" aria-label="Меню">⋯</button>
         </div>
-        <div class="mt-3 relative overflow-hidden rounded-3xl border border-white/15 bg-white/5 flex-1 min-h-[60dvh]" style="height: 320px;">
-          <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-white/20"></div>
-            <div class="absolute left-0 right-0 top-0 h-8 bg-gradient-to-b from-[#070814]/90 via-[#070814]/55 to-transparent backdrop-blur-[1px]"></div>
-            <div class="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-t from-[#070814]/90 via-[#070814]/55 to-transparent backdrop-blur-[1px]"></div>
-            <div class="absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r from-[#070814]/80 to-transparent"></div>
-            <div class="absolute top-0 bottom-0 right-0 w-4 bg-gradient-to-l from-[#070814]/80 to-transparent"></div>
+
+        <div class="spin-ref-balance">
+          <div class="spin-ref-balance-left">
+            <img class="stars-logo" src="/static/brand/tg-stars.avif?v=1" alt="Stars"/>
+            <span id="spinBalanceAmount">—</span>
           </div>
-          <div class="absolute left-2 top-1/2 -translate-y-1/2 z-20">
-            <div class="w-0 h-0 border-t-[12px] border-b-[12px] border-r-[18px] border-t-transparent border-b-transparent border-r-[#ffd36e] drop-shadow-[0_0_10px_rgba(255,211,110,0.9)]"></div>
+          <div class="spin-ref-balance-right">
+            <span class="spin-ref-miniicon spin-ref-miniicon-ticket"></span>
+            <span class="spin-ref-miniicon spin-ref-miniicon-gift"></span>
           </div>
-          <div class="absolute right-2 top-1/2 -translate-y-1/2 z-20">
-            <div class="w-0 h-0 border-t-[12px] border-b-[12px] border-l-[18px] border-t-transparent border-b-transparent border-l-[#ffd36e] drop-shadow-[0_0_10px_rgba(255,211,110,0.9)]"></div>
-          </div>
-          <div id="reelModal" class="reel flex flex-col gap-3 py-5 px-4" style="transform: translateY(0px);"></div>
         </div>
-        <button id="spinBtn" class="btn btn-primary pulse mt-4 w-full rounded-2xl font-extrabold py-4">Крутить</button>
+
+        <div class="spin-ref-stage">
+          <div id="spinModalTitle" class="spin-ref-case">Кейс</div>
+          <div class="spin-viewport spin-ref-viewport">
+            <div class="spin-ref-arrows" aria-hidden="true">
+              <div class="spin-ref-arrow spin-ref-arrow-left">➜</div>
+              <div class="spin-ref-arrow spin-ref-arrow-right">➜</div>
+            </div>
+            <div id="reelModal" class="reel flex flex-col gap-3 py-5 px-4" style="transform: translateY(0px);"></div>
+          </div>
+        </div>
+
+        <div class="spin-ref-footer">
+          <div class="spin-ref-casechip">Открытие кейса: <span id="spinCaseLabel">—</span></div>
+          <button id="spinBtn" class="btn pulse spin-ref-cta">Крутить</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1279,7 +2690,7 @@
   <script src="/static/vendor/three/GLTFLoader.js?v=1"></script>
   <script src="/static/poly_bg.js?v=3"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="/static/mobile.js?v=208"></script>
+  <script src="/static/mobile.js?v=213"></script>
   <script src="/static/case3d_showcase.js?v=9"></script>
 </body>
 </html>
