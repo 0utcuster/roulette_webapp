@@ -128,11 +128,6 @@ let lockedScrollY = 0;
 let reelAnimRaf = 0;
 let reelAnimRunId = 0;
 const BOOT = {
-  imagesRatio: 0,
-  modelRatio: 0,
-  modelReady: false,
-  modelObserved: false,
-  modelWaiters: [],
   hidden: false,
 };
 
@@ -146,11 +141,6 @@ function bootSetProgress(ratio, text=""){
   if(txt && text) txt.textContent = text;
 }
 
-function bootUpdate(text=""){
-  const ratio = (BOOT.imagesRatio * 0.65) + (BOOT.modelRatio * 0.35);
-  bootSetProgress(ratio, text);
-}
-
 function bootHide(){
   if(BOOT.hidden) return;
   BOOT.hidden = true;
@@ -159,94 +149,6 @@ function bootHide(){
   box.classList.add("hidden");
   setTimeout(()=>box.remove(), 420);
 }
-
-function bootResolveModelWaiters(){
-  if(!BOOT.modelWaiters.length) return;
-  const waiters = [...BOOT.modelWaiters];
-  BOOT.modelWaiters = [];
-  waiters.forEach((fn)=>{ try{ fn(); }catch{} });
-}
-
-function bootWaitForModel(timeoutMs=22000){
-  if(BOOT.modelReady) return Promise.resolve();
-  return new Promise((resolve)=>{
-    const timer = setTimeout(()=>{
-      BOOT.modelRatio = 1;
-      BOOT.modelReady = true;
-      bootUpdate("Фото и 3D подготовлены");
-      resolve();
-    }, timeoutMs);
-    BOOT.modelWaiters.push(()=>{
-      clearTimeout(timer);
-      resolve();
-    });
-  });
-}
-
-function bootCollectImageUrls(cfg){
-  const set = new Set();
-  const add = (x)=>{
-    if(!x || typeof x !== "string") return;
-    const v = x.trim();
-    if(!v) return;
-    set.add(v);
-  };
-  Array.from(document.querySelectorAll("img[src]")).forEach((img)=>add(img.getAttribute("src")));
-  if(cfg?.event?.image) add(cfg.event.image);
-  const items = Array.isArray(cfg?.items) ? cfg.items : [];
-  for(const c of items){
-    add(c.avatar);
-    const prizes = Array.isArray(c.prizes) ? c.prizes : [];
-    for(const p of prizes){
-      const imgs = Array.isArray(p.images) ? p.images : [];
-      imgs.forEach(add);
-    }
-  }
-  return [...set];
-}
-
-function bootPreloadImages(urls){
-  if(!Array.isArray(urls) || !urls.length){
-    BOOT.imagesRatio = 1;
-    bootUpdate("Загружаем 3D модель…");
-    return Promise.resolve();
-  }
-  let done = 0;
-  const total = urls.length;
-  const onDone = ()=>{
-    done += 1;
-    BOOT.imagesRatio = Math.max(0, Math.min(1, done / total));
-    bootUpdate(`Загрузка фото: ${done}/${total}`);
-  };
-  const tasks = urls.map((url)=>new Promise((resolve)=>{
-    const img = new Image();
-    img.onload = ()=>{ onDone(); resolve(); };
-    img.onerror = ()=>{ onDone(); resolve(); };
-    img.src = url;
-  }));
-  return Promise.allSettled(tasks).then(()=>undefined);
-}
-
-window.addEventListener("madesix:model-progress", (e)=>{
-  BOOT.modelObserved = true;
-  const ratio = Number(e?.detail?.ratio);
-  if(Number.isFinite(ratio)) BOOT.modelRatio = Math.max(0, Math.min(1, ratio));
-  bootUpdate("Загружаем 3D модель…");
-});
-window.addEventListener("madesix:model-ready", ()=>{
-  BOOT.modelObserved = true;
-  BOOT.modelRatio = 1;
-  BOOT.modelReady = true;
-  bootUpdate("Фото и 3D подготовлены");
-  bootResolveModelWaiters();
-});
-window.addEventListener("madesix:model-error", ()=>{
-  BOOT.modelObserved = true;
-  BOOT.modelRatio = 1;
-  BOOT.modelReady = true;
-  bootUpdate("Фото подготовлены");
-  bootResolveModelWaiters();
-});
 
 function setMsg(text){ const el=$("msg"); if(el) el.textContent=text||"—"; }
 
@@ -1016,19 +918,13 @@ async function doSpin(){
 
 document.addEventListener("DOMContentLoaded", async ()=>{
   try{
-    bootSetProgress(0, "Подготавливаем фото и 3D модель…");
+    bootSetProgress(0.05, "Запуск интерфейса…");
     initAppLikeViewportLock();
     if(tg){ tg.ready(); tg.expand?.(); }
 
-    const bootCfg = await loadCasesApi().catch(()=>null);
-    const bootUrls = bootCollectImageUrls(bootCfg || {});
-    await Promise.allSettled([
-      bootPreloadImages(bootUrls),
-      bootWaitForModel(22000),
-    ]);
-    bootSetProgress(1, "Готово");
-    await sleep(140);
-    bootHide();
+    bootSetProgress(0.25, "Подключаем данные…");
+    await loadCasesApi().catch(()=>null);
+    bootSetProgress(0.45, "Готовим интерфейс…");
 
     $("casePreviewClose")?.addEventListener("click", ()=>closeModal("casePreviewModal"));
     $("caseSpinClose")?.addEventListener("click", ()=>closeModal("caseSpinModal"));
@@ -1143,6 +1039,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       setMsg("Ссылка скопирована");
     });
 
+    bootSetProgress(0.72, "Загружаем кейсы…");
     await buildRouletteGrid();
 
     $("hitSeasonOpenR1")?.addEventListener("click", async ()=>{
@@ -1162,8 +1059,14 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     setupContactButton(cfg);
     setupOnlineCounter();
     setupLiveWinsFeed();
-    await loadMe();
-    await loadInventory().catch(()=>{});
+    bootSetProgress(1, "Готово");
+    await sleep(80);
+    bootHide();
+
+    await Promise.allSettled([
+      loadMe(),
+      loadInventory(),
+    ]);
 
   }catch(e){
     bootHide();

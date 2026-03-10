@@ -1,15 +1,21 @@
 (function () {
   const THREE = window.THREE;
   const loaderEl = document.getElementById("model3dLoader");
+  const loaderTextEl = document.getElementById("model3dLoaderText");
   const card = document.querySelector(".showcase3d-card");
   const canvas = card?.querySelector(".card__canvas");
+
+  function setLoaderText(text) {
+    if (loaderTextEl) loaderTextEl.textContent = text;
+    else if (loaderEl) loaderEl.textContent = text;
+  }
 
   function emitModelEvent(type, detail = {}) {
     window.dispatchEvent(new CustomEvent(type, { detail }));
   }
 
   if (!THREE || !THREE.GLTFLoader || !card || !canvas) {
-    if (loaderEl) loaderEl.textContent = "3D блок недоступен.";
+    setLoaderText("3D блок недоступен.");
     emitModelEvent("madesix:model-error", { reason: "3d_block_unavailable" });
     emitModelEvent("madesix:model-ready", { ok: false });
     return;
@@ -19,7 +25,7 @@
   const src = String(card.dataset.modelSrc || "").trim();
   const fallbackSrc = String(card.dataset.fallbackImg || "/static/prizes/sneakers_1.svg");
   if (!src) {
-    if (loaderEl) loaderEl.textContent = "Источник 3D модели не задан.";
+    setLoaderText("Источник 3D модели не задан.");
     emitModelEvent("madesix:model-error", { reason: "empty_src" });
     emitModelEvent("madesix:model-ready", { ok: false });
     return;
@@ -40,7 +46,7 @@
       preserveDrawingBuffer: false,
     });
   } catch (e) {
-    if (loaderEl) loaderEl.textContent = "WebGL недоступен на этом устройстве.";
+    setLoaderText("WebGL недоступен на этом устройстве.");
     emitModelEvent("madesix:model-error", { reason: "webgl_unavailable" });
     emitModelEvent("madesix:model-ready", { ok: false });
     return;
@@ -78,7 +84,7 @@
   let modelReady = false;
 
   function showFallback(text) {
-    if (loaderEl) loaderEl.textContent = text;
+    setLoaderText(text);
     ring.material.opacity = 0;
     if (card.querySelector(".showcase3d-fallback")) return;
     const img = document.createElement("img");
@@ -138,7 +144,7 @@
   resize();
   window.addEventListener("resize", resize, { passive: true });
 
-  if (loaderEl) loaderEl.textContent = "Загрузка 3D модели…";
+  setLoaderText("Loading 3D…");
   emitModelEvent("madesix:model-progress", { ratio: 0 });
   gltfLoader.load(
     src,
@@ -149,15 +155,17 @@
       root.add(model);
       clearFallback();
       modelReady = true;
-      if (loaderEl) loaderEl.textContent = "NUMERIS готов";
+      setLoaderText("NUMERIS готов");
+      if (loaderEl) {
+        loaderEl.classList.add("is-ready");
+        setTimeout(() => loaderEl.remove(), 360);
+      }
       emitModelEvent("madesix:model-progress", { ratio: 1 });
       emitModelEvent("madesix:model-ready", { ok: true });
     },
     (progress) => {
       if (!progress || !Number.isFinite(progress.total) || progress.total <= 0) return;
       const ratio = Math.max(0, Math.min(1, progress.loaded / progress.total));
-      const pct = Math.round(ratio * 100);
-      if (loaderEl) loaderEl.textContent = `Загрузка 3D модели: ${pct}%`;
       emitModelEvent("madesix:model-progress", { ratio });
     },
     (err) => {
