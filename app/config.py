@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # --- Telegram ---
     bot_token: str = Field(default="", alias="BOT_TOKEN")
-    bot_username: str = Field(default="ruletkakawedka_bot", alias="BOT_USERNAME")
+    bot_username: str = Field(default="madesix_bot", alias="BOT_USERNAME")
 
     # --- DB ---
     database_url: str = Field(default="sqlite:///./data/app.db", alias="DATABASE_URL")

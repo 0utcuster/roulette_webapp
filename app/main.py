@@ -267,7 +267,7 @@ def api_me(request: Request, db: Session = Depends(get_db)):
 
     u = ensure_user(db, uid)
 
-    bot_username = getattr(settings, "bot_username", None) or "ruletkakawedka_bot"
+    bot_username = getattr(settings, "bot_username", None) or "madesix_bot"
     ref_link = f"https://t.me/{bot_username}?start=ref_{uid}"
 
     return {

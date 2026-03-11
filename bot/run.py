@@ -20,7 +20,7 @@ dp = Dispatcher()
 
 def webapp_kb():
     kb = InlineKeyboardBuilder()
-    kb.button(text="⭐ Открыть Stars Roulette", web_app={"url": settings.webapp_url})
+    kb.button(text="⭐ Открыть SPIN MADESIX", web_app={"url": settings.webapp_url})
     return kb.as_markup()
 
 
@@ -64,7 +64,7 @@ async def start(m: Message):
             pass
 
     await m.answer(
-        "⭐ Stars Roulette\n\nОткройте мини-приложение и крутите рулетку за Stars.",
+        "⭐ SPIN MADESIX\n\nЗапустите мини-приложение и крутите рулетку за Stars.\n\nКаждый спин — шанс выиграть одежду из коллекции MADESIX.",
         reply_markup=webapp_kb(),
     )
 
