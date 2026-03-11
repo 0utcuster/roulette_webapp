@@ -20,7 +20,7 @@
     "r1": {
       "title": "Обувной",
       "spin_cost": 259,
-      "avatar": "/static/uploads/prize_shoes.png",
+      "avatar": "/static/uploads/image1-f6cbf4fb7a.webp",
       "desc": "Топовый обувной дроп: кроссы, скидки и звезды.",
       "items": {
         "shoes": [
@@ -43,7 +43,7 @@
     "r2": {
       "title": "Стрит",
       "spin_cost": 229,
-      "avatar": "/static/uploads/prize_hoodie.png",
+      "avatar": "/static/uploads/image2-4c3b31307c.webp",
       "desc": "Уличный набор: толстовки, футболки, джинсы и бонусы.",
       "items": {
         "hoodie": [
@@ -66,7 +66,7 @@
     "r3": {
       "title": "Вумен",
       "spin_cost": 239,
-      "avatar": "/static/uploads/prize_tshirt.png",
+      "avatar": "/static/uploads/image3-1-cd07271986.webp",
       "desc": "Женский кейс с модными призами и скидками.",
       "items": {
         "women_shoes": [
@@ -89,7 +89,7 @@
     "r4": {
       "title": "LIMITED DROP",
       "spin_cost": 299,
-      "avatar": "/static/uploads/prize_full_look.png",
+      "avatar": "/static/uploads/image4-ea5eee9f31.webp",
       "desc": "Лимитка с редкими дропами и увеличенными наградами.",
       "items": {
         "limited_shoes": [
@@ -115,7 +115,7 @@
     "r5": {
       "title": "GOLD VIBE",
       "spin_cost": 279,
-      "avatar": "/static/uploads/prize_bracelet.png",
+      "avatar": "/static/uploads/image5-e34f590f01.webp",
       "desc": "Золотой вайб: украшения, сертификат и жирные скидки.",
       "items": {
         "bracelet": [
@@ -138,7 +138,7 @@
     "r6": {
       "title": "ULTIMATE STREET BOX",
       "spin_cost": 329,
-      "avatar": "/static/uploads/prize_jeans.png",
+      "avatar": "/static/uploads/image6-4b383c0579.webp",
       "desc": "Ультимативный стрит-бокс с мощными предметами.",
       "items": {
         "full_look": [
@@ -161,7 +161,7 @@
     "r7": {
       "title": "STAR JACKPOT",
       "spin_cost": 199,
-      "avatar": "/static/uploads/prize_stars_500.png",
+      "avatar": "/static/uploads/image7-055c1cc0b3.webp",
       "desc": "Максимальный шанс на крупные звездные призы.",
       "items": {
         "stars_1000": [
@@ -187,7 +187,7 @@
     "r8": {
       "title": "SECRET LEVEL",
       "spin_cost": 289,
-      "avatar": "/static/uploads/prize_vip_key.png",
+      "avatar": "/static/uploads/image8-23e3e30945.webp",
       "desc": "Секретный кейс: премиальные призы и VIP-ключ.",
       "items": {
         "shoes": [

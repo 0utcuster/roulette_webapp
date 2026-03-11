@@ -130,6 +130,22 @@ let reelAnimRunId = 0;
 const BOOT = {
   hidden: false,
 };
+const CASE_ASSET_STATUS = new Map();
+const CAPTCHA_CLOTHING_POOL = [
+  { code: "shoes", label: "Обувь" },
+  { code: "hoodie", label: "Худи" },
+  { code: "tshirt", label: "Футболка" },
+  { code: "jeans", label: "Джинсы" },
+];
+const CAPTCHA_DISTRACTOR_POOL = [
+  { code: "stars", label: "Stars" },
+  { code: "discount", label: "Скидка" },
+  { code: "bracelet", label: "Браслет" },
+  { code: "cert", label: "Сертификат" },
+  { code: "vip", label: "VIP-ключ" },
+];
+let caseCaptchaResolver = null;
+let caseCaptchaTargets = [];
 
 function bootSetProgress(ratio, text=""){
   const clamped = Math.max(0, Math.min(1, Number(ratio || 0)));
@@ -478,6 +494,139 @@ async function loadInventory(){
   return data;
 }
 
+function shuffleArray(arr){
+  const a = [...arr];
+  for(let i=a.length-1; i>0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function collectCaseAssetUrls(caseObj){
+  const set = new Set();
+  if(caseObj?.avatar) set.add(String(caseObj.avatar));
+  for(const p of (caseObj?.prizes || [])){
+    for(const u of (p?.images || [])){
+      const url = String(u || "").trim();
+      if(url) set.add(url);
+    }
+  }
+  return [...set];
+}
+
+function probeImageFast(url, timeoutMs=900){
+  if(!url) return Promise.resolve(true);
+  const prev = CASE_ASSET_STATUS.get(url);
+  if(prev === "loaded") return Promise.resolve(true);
+  if(prev === "error") return Promise.resolve(false);
+  return new Promise((resolve)=>{
+    let done = false;
+    const img = new Image();
+    const finish = (ok, mark=true)=>{
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      if(mark) CASE_ASSET_STATUS.set(url, ok ? "loaded" : "error");
+      resolve(ok);
+    };
+    img.decoding = "async";
+    img.onload = ()=>finish(true, true);
+    img.onerror = ()=>finish(false, true);
+    const timer = setTimeout(()=>finish(false, false), timeoutMs);
+    img.src = url;
+  });
+}
+
+async function checkCaseAssetsReady(caseObj, timeoutMs=900){
+  const urls = collectCaseAssetUrls(caseObj);
+  if(!urls.length) return true;
+  const rs = await Promise.all(urls.map((u)=>probeImageFast(u, timeoutMs)));
+  return rs.every(Boolean);
+}
+
+function renderCaseCaptchaChallenge(){
+  const targets = shuffleArray(CAPTCHA_CLOTHING_POOL).slice(0,2);
+  caseCaptchaTargets = targets.map((x)=>x.code);
+  const distractors = shuffleArray(CAPTCHA_DISTRACTOR_POOL).slice(0,4);
+  const options = shuffleArray([...targets, ...distractors]);
+
+  const title = $("caseCaptchaTargets");
+  const err = $("caseCaptchaError");
+  const box = $("caseCaptchaOptions");
+  if(title){
+    title.textContent = targets.map((x)=>x.label).join(" и ");
+  }
+  if(err) err.textContent = "";
+  if(box){
+    box.innerHTML = options.map((x)=>`
+      <button type="button" class="case-captcha-option" data-captcha-code="${esc(x.code)}">
+        ${esc(x.label)}
+      </button>
+    `).join("");
+    Array.from(box.querySelectorAll("[data-captcha-code]")).forEach((btn)=>{
+      btn.addEventListener("click", ()=>{
+        btn.classList.toggle("is-selected");
+      });
+    });
+  }
+}
+
+function openCaseCaptcha(){
+  renderCaseCaptchaChallenge();
+  openModal("caseCaptchaModal");
+  return new Promise((resolve)=>{
+    caseCaptchaResolver = resolve;
+  });
+}
+
+function closeCaseCaptcha(result=false){
+  closeModal("caseCaptchaModal");
+  const r = caseCaptchaResolver;
+  caseCaptchaResolver = null;
+  if(typeof r === "function") r(result);
+}
+
+function validateCaseCaptcha(){
+  const selected = Array.from(document.querySelectorAll("#caseCaptchaOptions .case-captcha-option.is-selected"))
+    .map((x)=>String(x.dataset.captchaCode || ""));
+  const err = $("caseCaptchaError");
+  const selectedSet = new Set(selected);
+  const targetSet = new Set(caseCaptchaTargets);
+  const ok = selectedSet.size === targetSet.size && [...targetSet].every((x)=>selectedSet.has(x));
+  if(!ok){
+    if(err) err.textContent = "Неверно. Выберите именно два товара одежды из условия.";
+    return false;
+  }
+  if(err) err.textContent = "";
+  return true;
+}
+
+async function openSpinModalGuarded(){
+  if(!state.currentCase){
+    openResultOverlay({
+      badge:"Сначала выбор",
+      title:"Кейс не выбран",
+      text:"Выберите любой кейс сверху и подтвердите выбор.",
+      primary:"Понятно"
+    });
+    return;
+  }
+  const ready = await checkCaseAssetsReady(state.currentCase, 900);
+  if(!ready){
+    const passed = await openCaseCaptcha();
+    if(!passed){
+      setMsg("Проверка не пройдена.");
+      return;
+    }
+    setMsg("Проверка пройдена. Открываю кейс…");
+    checkCaseAssetsReady(state.currentCase, 3500).catch(()=>{});
+  }
+  await buildReel(state.currentCase.id, "reelModal");
+  if($("spinModalTitle")) $("spinModalTitle").textContent = state.currentCase.title || "Кейс";
+  openModal("caseSpinModal");
+}
+
 function openCasePreview(c){
   const modal=$("casePreviewModal"); if(!modal) return;
   const prizes=Array.isArray(c.prizes) ? [...c.prizes] : [];
@@ -548,7 +697,6 @@ async function selectCase(c, {silent=true}={}){
   if($("spin-cost-inline")) $("spin-cost-inline").textContent=String(c.cost);
   if($("spinCaseLabel")) $("spinCaseLabel").textContent = c.title || c.id;
 
-  await buildReel(c.id, "reelModal");
   const openBtn=$("openSpinModalBtn");
   if(openBtn){
     openBtn.disabled=false;
@@ -558,8 +706,8 @@ async function selectCase(c, {silent=true}={}){
   }
   if($("spinModalTitle")) $("spinModalTitle").textContent=c.title;
   if(!silent){
-    openModal("caseSpinModal");
-    setMsg(`Выбран кейс: ${c.title}. Можно крутить.`);
+    setMsg(`Выбран кейс: ${c.title}.`);
+    await openSpinModalGuarded();
   }
 }
 
@@ -993,17 +1141,14 @@ document.addEventListener("DOMContentLoaded", async ()=>{
         primary:"Понятно"
       });
     });
-    $("openSpinModalBtn")?.addEventListener("click", ()=>{
-      if(!state.currentCase){
-        openResultOverlay({
-          badge:"Сначала выбор",
-          title:"Кейс не выбран",
-          text:"Выберите любой кейс сверху и подтвердите выбор.",
-          primary:"Понятно"
-        });
-        return;
-      }
-      openModal("caseSpinModal");
+    $("openSpinModalBtn")?.addEventListener("click", async ()=>{
+      await openSpinModalGuarded();
+    });
+    $("caseCaptchaClose")?.addEventListener("click", ()=>closeCaseCaptcha(false));
+    $("caseCaptchaRefresh")?.addEventListener("click", ()=>renderCaseCaptchaChallenge());
+    $("caseCaptchaConfirm")?.addEventListener("click", ()=>{
+      if(!validateCaseCaptcha()) return;
+      closeCaseCaptcha(true);
     });
 
     $("depositBtn")?.addEventListener("click", ()=>{
