@@ -4,7 +4,7 @@
     "subtitle": "Подписывайтесь на канал и следите за релизами",
     "shop_mention": "MADESIX",
     "text": "В Telegram-канале мы публикуем анонсы дропов, новые кейсы, розыгрыши и промокоды.",
-    "image": "/static/uploads/image-1-09b5507ee8.webp",
+    "image": "/static/uploads/cover_background.png",
     "cta_label": "Подписаться на канал",
     "cta_url": "https://t.me/+73LNTZZwCodmMzcy"
   },
@@ -20,196 +20,193 @@
     "r1": {
       "title": "Обувной",
       "spin_cost": 259,
-      "avatar": "/static/uploads/image1-f6cbf4fb7a.webp",
+      "avatar": "/static/uploads/prize_shoes.png",
       "desc": "Топовый обувной дроп: кроссы, скидки и звезды.",
       "items": {
         "shoes": [
-          "/static/uploads/image2-48c18a0947.png",
-          "/static/prizes/sneakers_2.svg",
-          "/static/prizes/sneakers_3.svg"
+          "/static/uploads/prize_shoes.png"
         ],
         "discount_20": [
-          "/static/uploads/image3-14eca92d85.png"
+          "/static/uploads/prize_discount_20.png"
         ],
         "discount_10": [
-          "/static/uploads/image1-3fa3388a37.png"
+          "/static/uploads/prize_discount_10.png"
         ],
         "stars_200": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_200.png"
         ],
         "stars_100": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_100.png"
         ]
       }
     },
     "r2": {
       "title": "Стрит",
       "spin_cost": 229,
-      "avatar": "/static/uploads/image2-4c3b31307c.webp",
+      "avatar": "/static/uploads/prize_hoodie.png",
       "desc": "Уличный набор: толстовки, футболки, джинсы и бонусы.",
       "items": {
         "hoodie": [
-          "/static/prizes/r2/ticket_bracelet_1.svg"
+          "/static/uploads/prize_hoodie.png"
         ],
         "tshirt": [
-          "/static/prizes/r2/ticket_sneakers_1.svg"
+          "/static/uploads/prize_tshirt.png"
         ],
         "jeans": [
-          "/static/prizes/r2/ticket_sneakers_2.svg"
+          "/static/uploads/prize_jeans.png"
         ],
         "discount_10": [
-          "/static/prizes/discount_10.svg"
+          "/static/uploads/prize_discount_10.png"
         ],
         "stars_100": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_100.png"
         ]
       }
     },
     "r3": {
       "title": "Вумен",
       "spin_cost": 239,
-      "avatar": "/static/uploads/image3-1-cd07271986.webp",
+      "avatar": "/static/uploads/prize_tshirt.png",
       "desc": "Женский кейс с модными призами и скидками.",
       "items": {
         "women_shoes": [
-          "/static/prizes/sneakers_2.svg"
+          "/static/uploads/prize_shoes.png"
         ],
         "women_hoodie": [
-          "/static/prizes/r3/ticket_bracelet_2.svg"
+          "/static/uploads/prize_hoodie.png"
         ],
         "discount_20": [
-          "/static/prizes/discount_20.svg"
+          "/static/uploads/prize_discount_20.png"
         ],
         "discount_10": [
-          "/static/prizes/discount_10.svg"
+          "/static/uploads/prize_discount_10.png"
         ],
         "stars_100": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_100.png"
         ]
       }
     },
     "r4": {
       "title": "LIMITED DROP",
       "spin_cost": 299,
-      "avatar": "/static/uploads/image4-ea5eee9f31.webp",
+      "avatar": "/static/uploads/prize_full_look.png",
       "desc": "Лимитка с редкими дропами и увеличенными наградами.",
       "items": {
         "limited_shoes": [
-          "/static/prizes/sneakers_3.svg"
+          "/static/uploads/prize_shoes.png"
         ],
         "exclusive_hoodie": [
-          "/static/prizes/r4/ticket_bracelet_1.svg"
+          "/static/uploads/prize_hoodie.png"
         ],
         "tshirt": [
-          "/static/prizes/r4/ticket_sneakers_1.svg"
+          "/static/uploads/prize_tshirt.png"
         ],
         "discount_30": [
-          "/static/prizes/discount_50.svg"
+          "/static/uploads/prize_discount_30.png"
         ],
         "stars_300": [
-          "/static/prizes/stars_500.svg"
+          "/static/uploads/prize_stars_300.png"
         ],
         "stars_150": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_150.png"
         ]
       }
     },
     "r5": {
       "title": "GOLD VIBE",
       "spin_cost": 279,
-      "avatar": "/static/uploads/image5-e34f590f01.webp",
+      "avatar": "/static/uploads/prize_bracelet.png",
       "desc": "Золотой вайб: украшения, сертификат и жирные скидки.",
       "items": {
         "bracelet": [
-          "/static/prizes/bracelet_1.svg",
-          "/static/prizes/bracelet_2.svg"
+          "/static/uploads/prize_bracelet.png"
         ],
         "cert_3000": [
-          "/static/prizes/r5/ticket_sneakers_3.svg"
+          "/static/uploads/prize_cert_3000.png"
         ],
         "discount_25": [
-          "/static/prizes/discount_20.svg"
+          "/static/uploads/prize_discount_25.png"
         ],
         "discount_15": [
-          "/static/prizes/discount_10.svg"
+          "/static/uploads/prize_discount_10.png"
         ],
         "stars_200": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_200.png"
         ]
       }
     },
     "r6": {
       "title": "ULTIMATE STREET BOX",
       "spin_cost": 329,
-      "avatar": "/static/uploads/image6-4b383c0579.webp",
+      "avatar": "/static/uploads/prize_jeans.png",
       "desc": "Ультимативный стрит-бокс с мощными предметами.",
       "items": {
         "full_look": [
-          "/static/prizes/r6/ticket_sneakers_3.svg"
+          "/static/uploads/prize_full_look.png"
         ],
         "shoes": [
-          "/static/prizes/sneakers_1.svg"
+          "/static/uploads/prize_shoes.png"
         ],
         "hoodie": [
-          "/static/prizes/r6/ticket_bracelet_1.svg"
+          "/static/uploads/prize_hoodie.png"
         ],
         "discount_20": [
-          "/static/prizes/discount_20.svg"
+          "/static/uploads/prize_discount_20.png"
         ],
         "stars_150": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_150.png"
         ]
       }
     },
     "r7": {
       "title": "STAR JACKPOT",
       "spin_cost": 199,
-      "avatar": "/static/uploads/image7-055c1cc0b3.webp",
+      "avatar": "/static/uploads/prize_stars_500.png",
       "desc": "Максимальный шанс на крупные звездные призы.",
       "items": {
         "stars_1000": [
-          "/static/prizes/stars_1000.svg"
+          "/static/uploads/prize_stars_500.png"
         ],
         "stars_500": [
-          "/static/prizes/stars_500.svg"
+          "/static/uploads/prize_stars_500.png"
         ],
         "stars_300": [
-          "/static/prizes/stars_500.svg"
+          "/static/uploads/prize_stars_300.png"
         ],
         "stars_150": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_150.png"
         ],
         "stars_50": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_100.png"
         ],
         "stars_0": [
-          "/static/prizes/discount_10.svg"
+          "/static/uploads/prize_stars_0.png"
         ]
       }
     },
     "r8": {
       "title": "SECRET LEVEL",
       "spin_cost": 289,
-      "avatar": "/static/uploads/image8-23e3e30945.webp",
+      "avatar": "/static/uploads/prize_vip_key.png",
       "desc": "Секретный кейс: премиальные призы и VIP-ключ.",
       "items": {
         "shoes": [
-          "/static/prizes/sneakers_2.svg"
+          "/static/uploads/prize_shoes.png"
         ],
         "hoodie": [
-          "/static/prizes/r1/ticket_bracelet_2.svg"
+          "/static/uploads/prize_hoodie.png"
         ],
         "discount_30": [
-          "/static/prizes/discount_50.svg"
+          "/static/uploads/prize_discount_30.png"
         ],
         "stars_200": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_200.png"
         ],
         "stars_100": [
-          "/static/prizes/stars_150.svg"
+          "/static/uploads/prize_stars_100.png"
         ],
         "vip_key": [
-          "/static/prizes/r1/ticket_sneakers_3.svg"
+          "/static/uploads/prize_vip_key.png"
         ]
       }
     }
