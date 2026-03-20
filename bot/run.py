@@ -9,6 +9,7 @@ if PROJECT_ROOT not in sys.path:
 
 import asyncio
 from aiogram import Bot, Dispatcher, F
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.types import Message, PreCheckoutQuery
 from aiogram.filters import CommandStart
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -108,7 +109,9 @@ async def on_success(m: Message):
 async def main():
     if not settings.bot_token:
         raise SystemExit("BOT_TOKEN not set in .env")
-    bot = Bot(token=settings.bot_token)
+    proxy = (settings.telegram_proxy or "").strip() or None
+    session = AiohttpSession(proxy=proxy) if proxy else None
+    bot = Bot(token=settings.bot_token, session=session)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

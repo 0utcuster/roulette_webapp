@@ -13,6 +13,8 @@ def create_invoice_link(*, bot_token: str, title: str, description: str, amount:
     if not bot_token:
         raise RuntimeError("BOT_TOKEN is empty")
 
+    from app.config import settings
+
     url = TG_API.format(token=bot_token, method="createInvoiceLink")
     data = {
         "title": title,
@@ -24,7 +26,8 @@ def create_invoice_link(*, bot_token: str, title: str, description: str, amount:
         "start_parameter": "stars_deposit",
     }
 
-    with httpx.Client(timeout=20) as client:
+    proxy = (settings.telegram_proxy or "").strip() or None
+    with httpx.Client(timeout=20, proxy=proxy) as client:
         r = client.post(url, json=data)
         r.raise_for_status()
         j = r.json()
